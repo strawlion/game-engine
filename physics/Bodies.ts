@@ -14,10 +14,10 @@ export default {
  * @param {number} radius
  * @return {body} A new circle body
  */
-function circle(x: number, y: number, radius: number): Body {
-    return {
-        x,
-        y,
-        radius,
-    };
+function circle(config: {
+        x: number;
+        y: number;
+        radius: number;
+    }): Body {
+    return config;
 }

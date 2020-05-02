@@ -1,5 +1,6 @@
 interface GameConfig {
     targetGameLogicFrameRate: number;
+    onStart: () => any;
     update: () => any;
     render: (distanceBetweenGameLogicFrames: number) => any;
 }
@@ -21,6 +22,7 @@ function createGame(config: GameConfig) {
 
     const {
         targetGameLogicFrameRate,
+        onStart,
         update,
         render,
     } = config;
@@ -36,6 +38,7 @@ function createGame(config: GameConfig) {
         let previousTime = Date.now();
         let timeBehindRealWorld = 0;
 
+        onStart();
         nextTick();
 
         function nextTick() {

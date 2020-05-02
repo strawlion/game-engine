@@ -13,26 +13,27 @@ document.body.appendChild(renderer.view);
 
 const game = createGame({
     targetGameLogicFrameRate: 60,
+    onStart,
     update,
     render,
 });
 
 
 
-// Create Player
-const player = Physics.Bodies.circle(400, 200, 25);
-
 // Create invaders
 const invaders = [];
 for (let i = 0; i < 5; i++) {
     invaders.push(
-        Physics.Bodies.circle(
-            (gameConfig.width * 0.2 * (i + .5)),
-            gameConfig.height * 0.10,
-            15
-        )
+        Physics.Bodies.circle({
+            x: (gameConfig.width * 0.2 * (i + .5)),
+            y: gameConfig.height * 0.10,
+            radius: 15,
+        })
     )
 }
+
+// Create Player
+const player = Physics.Bodies.circle({ x: 400, y: 200, radius: 25 });
 
 const world = [
     ...invaders,
@@ -41,8 +42,23 @@ const world = [
 
 game.start();
 
+function onStart() {
+    invaders.forEach(invader => {
+        invader.velocity = { x: 1, y: 0 };
+    })
+}
 
 function update() {
+
+    const firstInvader = invaders[0];
+    const lastInvader = invaders[invaders.length - 1];
+    const isFirstInvaderOffLeftSide = (firstInvader.x - firstInvader.radius) <= 0;
+    const isLastInvaderOffRightSide = (lastInvader.x + lastInvader.radius) >= gameConfig.width;
+    if (isFirstInvaderOffLeftSide || isLastInvaderOffRightSide) {
+        invaders.forEach(invader => invader.velocity.x *= -1);
+        invaders.forEach(invader => invader.y += gameConfig.height * .01);
+    }
+
     Physics.nextTick(world);
 }
 
