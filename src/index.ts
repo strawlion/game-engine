@@ -1,6 +1,9 @@
+import Body from "../physics/Body";
+
 interface GameConfig {
     targetGameLogicFrameRate: number;
     onStart: () => any;
+    // processInput: () => any;
     update: () => any;
     render: (distanceBetweenGameLogicFrames: number) => any;
 }
@@ -16,7 +19,18 @@ interface GameConfig {
 // https://github.com/Coder2012/pixi/tree/master/spaceshooter
 // https://codepen.io/celsowhite/pen/XWbEzpx
 
-export default createGame;
+export default {
+    createGameObject,
+    createGame,
+};
+
+interface GameObjectConfig {
+    body: Body,
+}
+
+function createGameObject() {
+
+}
 
 function createGame(config: GameConfig) {
 
@@ -48,7 +62,7 @@ function createGame(config: GameConfig) {
             const elapsedTime = currentTime - previousTime;
             timeBehindRealWorld += elapsedTime;
 
-            // TODO: process input
+            // processInput();
 
             // Fixed Game Logic timestep - TODO: bail after num iterations
             while (timeBehindRealWorld >= MS_PER_UPDATE) {
