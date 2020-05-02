@@ -1,14 +1,12 @@
-import * as PIXI from 'pixi.js';
-
 interface GameConfig {
     targetGameLogicFrameRate: number;
     update: () => any;
+    render: (distanceBetweenGameLogicFrames: number) => any;
 }
 
 // TODO: Extract pixi to a plugin (SOC)
 
 // PIXI
-const app = new PIXI.Application();
 // const renderObjectContainer = new PIXI.Container();
 // app.stage.addChild(renderObjectContainer);
 // PIXI
@@ -24,13 +22,13 @@ function createGame(config: GameConfig) {
     const {
         targetGameLogicFrameRate,
         update,
+        render,
     } = config;
 
     const MS_PER_UPDATE = 1000 / targetGameLogicFrameRate;
 
 
     return {
-        view: app.view,
         start,
     };
 
@@ -38,13 +36,16 @@ function createGame(config: GameConfig) {
         let previousTime = Date.now();
         let timeBehindRealWorld = 0;
 
-        while (true) { // TODO: use setTimeout
+        nextTick();
+
+        function nextTick() {
+            window.requestAnimationFrame(nextTick);
+
             const currentTime = Date.now();
             const elapsedTime = currentTime - previousTime;
-            previousTime = currentTime;
             timeBehindRealWorld += elapsedTime;
 
-            // process input
+            // TODO: process input
 
             // Fixed Game Logic timestep - TODO: bail after num iterations
             while (timeBehindRealWorld >= MS_PER_UPDATE) {
@@ -52,16 +53,12 @@ function createGame(config: GameConfig) {
                 timeBehindRealWorld -= MS_PER_UPDATE;
             }
 
-            const timeBetweenGameLogicFrames = timeBehindRealWorld / MS_PER_UPDATE;
+            const distanceBetweenGameLogicFrames = timeBehindRealWorld / MS_PER_UPDATE;
 
             // Variable render timestep
-            updateRenderer(timeBetweenGameLogicFrames);
+            render(distanceBetweenGameLogicFrames);
             previousTime = currentTime;
         }
-
-        function updateRenderer(interpolationFactor) {}
     }
 
 }
-
-//
