@@ -4,6 +4,11 @@ export default {
     circle,
 };
 
+interface Vector {
+    x: number;
+    y: number;
+}
+
  /**
  * Creates a new rigid body model with a circle hull.
  * The options parameter is an object that specifies any properties you wish to override the defaults.
@@ -18,6 +23,7 @@ function circle(config: {
         x: number;
         y: number;
         radius: number;
+        velocity?: Vector;
     }): Body {
     return config;
 }

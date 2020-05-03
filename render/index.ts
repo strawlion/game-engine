@@ -1,10 +1,13 @@
 import Body from '../physics/Body';
+import Renderer from './Renderer';
+
+
 
 export default {
     createRenderer,
 };
 
-function createRenderer(config: { width: number, height: number}) {
+function createRenderer(config: { width: number, height: number}): Renderer {
     const canvas = Object.assign(
         document.createElement('canvas'),
         config
