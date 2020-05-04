@@ -16,6 +16,7 @@ interface GameConfig {
 interface GameObject {
     body: Body;
     update?: () => any;
+    onCollision?: (otherObject: GameObject) => any;
 }
 
 interface GameObjectConfig {
@@ -109,9 +110,19 @@ function createGame(config: GameConfig): Game {
                     }
 
 
-                    // MAPPING is slow
-                    Physics.nextTick(game.world.map(e => e.body));
+                    const { collisions } = Physics.nextTick(game.world.map(e => e.body));
+                    for (const [i, j] of collisions) {
+                        const obj = game.world[i];
+                        const otherObj = game.world[j];
+                        if (obj.onCollision) {
+                            obj.onCollision(otherObj);
+                        }
+                        if (otherObj.onCollision) {
+                            otherObj.onCollision(obj);
+                        }
+                    }
 
+                    // Update - Trigger handlers
                     for (const gameObject of game.world) {
                         if (gameObject.update) {
                             gameObject.update();
@@ -124,7 +135,7 @@ function createGame(config: GameConfig): Game {
 
             const distanceBetweenGameLogicFrames = timeBehindRealWorld / MS_PER_UPDATE;
 
-            // Variable render timestep
+            // Render - Variable timestep
             (() => {
                 game.renderer.nextTick(game.world.map(e => e.body));
                 if (render) {

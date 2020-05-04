@@ -67,7 +67,12 @@ function createSpaceInvaderUtils(game: Game) {
         }
         return game.createGameObject({
             body,
+            onCollision,
         });
+
+        function onCollision(otherObj) {
+            console.log(otherObj.body);
+        }
 
         function updatePlayerVelocity() {
             const velocity = { x: 0, y: 0 };
