@@ -93,8 +93,6 @@ function createGame(config: GameConfig): Game {
         nextTick();
 
         function nextTick() {
-            window.requestAnimationFrame(nextTick);
-
             const currentTime = Date.now();
             const elapsedTime = currentTime - previousTime;
             timeBehindRealWorld += elapsedTime;
@@ -109,18 +107,7 @@ function createGame(config: GameConfig): Game {
                         update();
                     }
 
-
-                    const { collisions } = Physics.nextTick(game.world.map(e => e.body));
-                    for (const [i, j] of collisions) {
-                        const obj = game.world[i];
-                        const otherObj = game.world[j];
-                        if (obj.onCollision) {
-                            obj.onCollision(otherObj);
-                        }
-                        if (otherObj.onCollision) {
-                            otherObj.onCollision(obj);
-                        }
-                    }
+                    Physics.nextTick(game.world);
 
                     // Update - Trigger handlers
                     for (const gameObject of game.world) {
@@ -137,13 +124,14 @@ function createGame(config: GameConfig): Game {
 
             // Render - Variable timestep
             (() => {
-                game.renderer.nextTick(game.world.map(e => e.body));
+                game.renderer.nextTick(game.world);
                 if (render) {
                     render(distanceBetweenGameLogicFrames);
                 }
             })()
 
             previousTime = currentTime;
+            window.requestAnimationFrame(nextTick);
         }
     }
 

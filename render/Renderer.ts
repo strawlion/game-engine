@@ -1,6 +1,6 @@
-import Body from "../physics/Body";
+import RenderObject from './RenderObject';
 
 export default interface Renderer {
     view: Element,
-    nextTick: (bodies: Body[]) => any;
+    nextTick: (bodies: RenderObject[]) => any;
 }
