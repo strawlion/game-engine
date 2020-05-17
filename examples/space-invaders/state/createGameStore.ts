@@ -1,8 +1,31 @@
-import Physics from '../../physics';
-import { Game, GameObject } from '../../src';
+import { GameObject, Game } from '../../../src';
+import { createStore } from '../../../state-manager/stateManager';
+import Physics from '../../../physics';
 
-export default createSpaceInvaderUtils;
+interface StateStructure {
+    invaders: GameObject[];
+    player: GameObject;
+}
+export default createGameStore;
 
+
+function createGameStore(game: Game) {
+    const utils = createSpaceInvaderUtils(game);
+    return new createStore<StateStructure>({
+        state: {
+            invaders: utils.createInvaderWaveOne(),
+            player: utils.createPlayer({ x: 400, y: 200 }),
+        },
+        getters: {
+            world(state) {
+                return [
+                    ...state.invaders,
+                    state.player,
+                ];
+            }
+        },
+    });
+}
 
 function createSpaceInvaderUtils(game: Game) {
 

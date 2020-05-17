@@ -7,19 +7,20 @@ interface GameConfig {
     width: number;
     height: number;
     targetGameLogicFrameRate: number;
-    onStart?: () => any;
+    onInit?: (game: Game) => void;
+    onStart?: () => void;
     // processInput: () => any;
-    update?: () => any;
-    render?: (distanceBetweenGameLogicFrames: number) => any;
+    update?: () => void;
+    render?: (distanceBetweenGameLogicFrames: number) => void;
 }
 
 interface GameObjectConfig {
     type: string;
     body: Body;
     image?: string,
-    start?: () => any;
-    update?: () => any;
-    onCollision?: (otherObject: GameObject) => any;
+    start?: () => void;
+    update?: () => void;
+    onCollision?: (otherObject: GameObject) => void;
 }
 
 // TODO: Extract pixi to a plugin (SOC)
@@ -76,6 +77,10 @@ function createGame(config: GameConfig): Game {
         assetLoader,
         world: [],
     };
+
+    if (config.onInit) {
+        config.onInit(game);
+    }
     return game;
 
     // TODO: Can we get away with not attaching update to game object?
@@ -102,6 +107,10 @@ function createGame(config: GameConfig): Game {
 
 
     function start() {
+        if (config.onStart) {
+            config.onStart();
+        }
+
         let previousTime = Date.now();
         let timeBehindRealWorld = 0;
 

@@ -1,13 +1,23 @@
 import { createGame } from '../../src/index';
-import createSpaceInvaderUtils from './createSpaceInvaderUtils';
+import createGameStore from './state/createGameStore';
 
+let store;
 const game = createGame({
     width: 800,
     height: 600,
     targetGameLogicFrameRate: 60,
+    onInit(game) {
+        document.body.appendChild(game.renderer.view);
+        store = createGameStore(game);
+    },
+    update() {
+        // TODO: Don't recreate world every frame, use iterable over multiple arrays
+        game.world = store.getters.world;
+    }
+
 });
 
-document.body.appendChild(game.renderer.view);
+
 
 
 const assets = [
@@ -18,15 +28,8 @@ const assets = [
 Promise.all(assets.map(game.assetLoader.load))
         .then(onAssetsLoaded);
 
-
 function onAssetsLoaded() {
-
-    const utils = createSpaceInvaderUtils(game);
-    game.world = [
-        ...utils.createInvaderWaveOne(),
-        utils.createPlayer({ x: 400, y: 200 }),
-    ];
-    game.start()
+    game.start();
 }
 
 // TODO:

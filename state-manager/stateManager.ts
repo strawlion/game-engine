@@ -12,7 +12,14 @@ interface StateEvent {
     type: string;
 }
 
-export default {
+// TODO: Don't use Vuex, placeholder until custom implementation
+import Vue from 'vue';
+import Vuex from 'vuex';
+
+Vue.use(Vuex);
+
+const createStore = Vuex.Store;
+export {
     createStore,
 };
 
@@ -27,7 +34,7 @@ interface Store {
 }
 
 
-function createStore<StateStructure>(config: CreateStoreConfig<StateStructure>): Store {
+function createStoreCustom_TODO<StateStructure>(config: CreateStoreConfig<StateStructure>): Store {
     // TODO: Instrument proxy interception
     const state = config.state;
 
