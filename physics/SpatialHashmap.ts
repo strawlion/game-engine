@@ -1,6 +1,7 @@
 // TODO: separation of concerns, Hashmap shouldnt know all shapes, use points
 
 import Vector from './Vector';
+import { clamp } from 'lodash';
 
 interface SpatialHashmapConfig {
     width: number;
@@ -34,7 +35,7 @@ export default class SpatialHashmap {
         for (let i = 0; i < config.cellSize; i++) {
             grid.push([])
             for (let j = 0; j < config.cellSize; j++) {
-                this.grid[i][j] = { objects: [] };
+                grid[i][j] = { objects: [] };
             }
         }
         this.grid = grid;
@@ -42,7 +43,7 @@ export default class SpatialHashmap {
 
     add(object: MapObject) {
         getSmallestEnclosingRectPoints(object.body)
-            .map(getCellId)
+            .map(value => getCellId(this.config, value))
             .forEach(([x, y]) => this.grid[x][y].objects.push(object));
     }
 
@@ -74,14 +75,15 @@ export default class SpatialHashmap {
 
 }
 
-function getCellId(point: Vector) {
-    const { config } = this;
-    const percentageThroughHeight = point.y / config.height;
-    const percentageThroughWidth = point.x / config.width;
 
+// TODO: handle out of bounds.
+// TODO: Off by one?
+function getCellId(config: SpatialHashmapConfig, point: Vector) {
+    const percentageThroughWidth = point.x / config.width;
+    const percentageThroughHeight = point.y / config.height;
     return [
-        Math.floor(percentageThroughHeight * config.cellSize),
-        Math.floor(percentageThroughWidth * config.cellSize),
+        clamp(Math.floor(percentageThroughWidth * config.cellSize), 0, config.cellSize - 1),
+        clamp(Math.floor(percentageThroughHeight * config.cellSize), 0, config.cellSize - 1),
     ];
 }
 
@@ -89,12 +91,12 @@ function getSmallestEnclosingRectPoints(circle: Circle): Vector[] {
     const { x, y, radius } = circle;
     return [
         // Top Left
-        { x: (x + radius), y: (y + radius) },
-        // Top Right
         { x: (x - radius), y: (y + radius) },
+        // Top Right
+        { x: (x + radius), y: (y + radius) },
         // Bottom Left
         { x: (x - radius), y: (y - radius) },
         // Bottom Right
-        { x: (x - radius), y: (y - radius) },
+        { x: (x + radius), y: (y - radius) },
     ];
 }

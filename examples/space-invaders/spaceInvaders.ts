@@ -1,8 +1,5 @@
-import gameEngine from '../../src/index';
+import { createGame } from '../../src/index';
 import createSpaceInvaderUtils from './createSpaceInvaderUtils';
-
-
-const { createGame } = gameEngine;
 
 const game = createGame({
     width: 800,
@@ -12,13 +9,25 @@ const game = createGame({
 
 document.body.appendChild(game.renderer.view);
 
-const utils = createSpaceInvaderUtils(game);
-game.world = [
-    ...utils.createInvaderWaveOne(),
-    utils.createPlayer({ x: 400, y: 200 }),
+
+const assets = [
+    'images/galaga-ship.png',
+    'images/space-invader.png'
 ];
 
-game.start();
+Promise.all(assets.map(game.assetLoader.load))
+        .then(onAssetsLoaded);
+
+
+function onAssetsLoaded() {
+
+    const utils = createSpaceInvaderUtils(game);
+    game.world = [
+        ...utils.createInvaderWaveOne(),
+        utils.createPlayer({ x: 400, y: 200 }),
+    ];
+    game.start()
+}
 
 // TODO:
 // - Make it easy to create game objects

@@ -1,6 +1,7 @@
 import Body from '../physics/Body';
 import Renderer from '../render';
 import Physics from '../physics';
+import GameObject from './GameObject';
 
 interface GameConfig {
     width: number;
@@ -12,17 +13,13 @@ interface GameConfig {
     render?: (distanceBetweenGameLogicFrames: number) => any;
 }
 
-
-interface GameObject {
-    body: Body;
-    update?: () => any;
-    onCollision?: (otherObject: GameObject) => any;
-}
-
 interface GameObjectConfig {
+    type: string;
     body: Body;
+    image?: string,
     start?: () => any;
     update?: () => any;
+    onCollision?: (otherObject: GameObject) => any;
 }
 
 // TODO: Extract pixi to a plugin (SOC)
@@ -36,8 +33,9 @@ interface GameObjectConfig {
 // https://github.com/Coder2012/pixi/tree/master/spaceshooter
 // https://codepen.io/celsowhite/pen/XWbEzpx
 
-export default {
+export {
     createGame,
+    GameObject,
 };
 
 export interface Game {
@@ -47,7 +45,8 @@ export interface Game {
     renderer: ReturnType<typeof Renderer.createRenderer>;
     physics: typeof Physics;
     inputManager:  ReturnType<typeof getInputManager>;
-    createGameObject: (GameObjectConfig) => GameObject;
+    createGameObject: (config: GameObjectConfig) => GameObject;
+    assetLoader: ReturnType<typeof Renderer.createAssetLoader>;
     world: GameObject[];
 }
 
@@ -64,6 +63,7 @@ function createGame(config: GameConfig): Game {
 
     const MS_PER_UPDATE = 1000 / targetGameLogicFrameRate;
 
+    const assetLoader = Renderer.createAssetLoader();
 
     const game: Game = {
         width: config.width,
@@ -73,6 +73,7 @@ function createGame(config: GameConfig): Game {
         physics: Physics,
         inputManager,
         createGameObject,
+        assetLoader,
         world: [],
     };
     return game;
@@ -80,9 +81,23 @@ function createGame(config: GameConfig): Game {
     // TODO: Can we get away with not attaching update to game object?
     // e.g. having objects attach their own handlers to game.onUpdate
     function createGameObject(config: GameObjectConfig): GameObject {
-        return {
+
+        const gameObject: GameObject = {
             ...config,
+            isDestroyed: false,
+            destroy() {
+                // @ts-ignore
+                gameObject.isDestroyed = true;
+            }
         };
+
+        if (config.image) {
+            gameObject.renderBody = {
+                image: assetLoader.get(config.image)
+            };
+        }
+
+        return gameObject;
     }
 
 
@@ -107,7 +122,7 @@ function createGame(config: GameConfig): Game {
                         update();
                     }
 
-                    Physics.nextTick(game.world);
+                    Physics.nextTick(game, game.world);
 
                     // Update - Trigger handlers
                     for (const gameObject of game.world) {
@@ -115,6 +130,10 @@ function createGame(config: GameConfig): Game {
                             gameObject.update();
                         }
                     }
+
+                    // TODO: Is this right place for remove? Can we avoid mutability
+                    // by doing removal externally? A lot of work for the game creator though
+                    game.world = game.world.filter(object => !object.isDestroyed);
                 })()
 
                 timeBehindRealWorld -= MS_PER_UPDATE;

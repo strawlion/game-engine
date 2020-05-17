@@ -8,13 +8,17 @@ interface PhysicsObject {
     onCollision?: (otherObject: PhysicsObject) => any;
 }
 
+interface PhysicsWorld {
+    height: number;
+    width: number;
+}
+
 export default {
     Bodies,
     nextTick,
 };
 
-
-function nextTick(objects: PhysicsObject[]) {
+function nextTick(world: PhysicsWorld, objects: PhysicsObject[]) {
     for (const object of objects) {
         // Update position
         const velocity = {
@@ -26,14 +30,14 @@ function nextTick(objects: PhysicsObject[]) {
         object.body.y += velocity.y;
     }
 
-    checkForCollisions(objects);
+    checkForCollisions(world, objects);
 }
 
 // TODO: Support different collision detection schemes
 // TODO: Do we want to check non-collideable objects?
-function checkForCollisions(objects: PhysicsObject[]) {
+function checkForCollisions(world: PhysicsWorld, objects: PhysicsObject[]) {
     // TODO: Don't recreate on each tick
-    const worldGrid = new SpatialHashmap({ width: 100, height: 100, cellSize: 10 });
+    const worldGrid = new SpatialHashmap({ width: world.width, height: world.height, cellSize: 10 });
 
     objects.forEach(object => worldGrid.add(object));
 
@@ -44,6 +48,7 @@ function checkForCollisions(objects: PhysicsObject[]) {
         forEachPair<PhysicsObject>(cell.objects, checkForCollision);
     }
 
+    // TODO: Don't compute collision if neither obj has collision handler
     function checkForCollision(object: PhysicsObject, otherObject: PhysicsObject) {
         if (isTouching(object.body, otherObject.body)) {
             handleCollision(object, otherObject);
@@ -70,7 +75,6 @@ function checkForCollisions(objects: PhysicsObject[]) {
         return objectToPreviouslyCollided.has(object) && objectToPreviouslyCollided.get(object).has(otherObject);
     }
 }
-
 
 function isTouching(body: Body, otherBody: Body) {
     return distanceBetween(body, otherBody) <= (body.radius + otherBody.radius);
