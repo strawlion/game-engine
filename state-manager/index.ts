@@ -26,7 +26,8 @@ interface Store {
 
 }
 
-function createStore<T>(config: CreateStoreConfig<T>): Store {
+
+function createStore<StateStructure>(config: CreateStoreConfig<StateStructure>): Store {
     // TODO: Instrument proxy interception
     const state = config.state;
 
@@ -44,3 +45,14 @@ function createStore<T>(config: CreateStoreConfig<T>): Store {
         eventHandler<Arg>(state, eventData);
     }
 }
+
+
+// var a = new Proxy(new Set(), { get(t, k) { return v => t[k](v) }, set(...args) { console.log(...args) } }); a.add('asd');
+// function createProxyTree(root: any) {
+//     new Proxy(root, {
+//         set(oTarget, keyBeingSet, valueBeingSet) {
+//         sKey,
+//         vValue
+//         }
+//     })
+// }
