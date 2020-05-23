@@ -1,35 +1,37 @@
 import { createGame } from '../../src/index';
-import createGameStore from './state/createGameStore';
+import gameStore from './state/gameStore';
+import gameEvents from './state/gameEvents';
 
-let store;
-const game = createGame({
-    width: 800,
-    height: 600,
-    targetGameLogicFrameRate: 60,
-    onInit(game) {
+
+setupGame();
+
+async function setupGame() {
+    const game = createGame({
+        width: 800,
+        height: 600,
+        targetGameLogicFrameRate: 60,
+        update,
+    });
+
+
+    await initGame();
+
+    game.start();
+
+    async function initGame() {
         document.body.appendChild(game.renderer.view);
-        store = createGameStore(game);
-    },
-    update() {
-        // TODO: Don't recreate world every frame, use iterable over multiple arrays
-        game.world = store.getters.world;
+        const assets = [
+            'images/galaga-ship.png',
+            'images/space-invader.png'
+        ];
+        await Promise.all(assets.map(game.assetLoader.load))
+        gameEvents.gameInitialized(game);
     }
 
-});
-
-
-
-
-const assets = [
-    'images/galaga-ship.png',
-    'images/space-invader.png'
-];
-
-Promise.all(assets.map(game.assetLoader.load))
-        .then(onAssetsLoaded);
-
-function onAssetsLoaded() {
-    game.start();
+    function update() {
+        // TODO: Don't recreate world every frame, use iterable over multiple arrays
+        game.world = gameStore.getters.world;
+    }
 }
 
 // TODO:

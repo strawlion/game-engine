@@ -7,17 +7,24 @@ interface GameConfig {
     width: number;
     height: number;
     targetGameLogicFrameRate: number;
-    onInit?: (game: Game) => void;
     onStart?: () => void;
     // processInput: () => any;
     update?: () => void;
     render?: (distanceBetweenGameLogicFrames: number) => void;
 }
 
+type InputEventId = 'w' | 'a' | 's' | 'd' | ' ';
+
+// TODO: Should we allow
+type InputEventHandler = (() => void) | {
+    onKeyDown?: () => void;
+    onKeyUp?: () => void;
+}
 interface GameObjectConfig {
     type: string;
     body: Body;
-    image?: string,
+    image?: string;
+    input?: Partial<Record<InputEventId, InputEventHandler>>;
     start?: () => void;
     update?: () => void;
     onCollision?: (otherObject: GameObject) => void;
@@ -78,9 +85,6 @@ function createGame(config: GameConfig): Game {
         world: [],
     };
 
-    if (config.onInit) {
-        config.onInit(game);
-    }
     return game;
 
     // TODO: Can we get away with not attaching update to game object?
@@ -180,12 +184,12 @@ function getInputManager(element) {
         keyToIsDown[event.key.toLowerCase()] = true;
         const eventHandlers = keyToKeyDownHandlers[event.key.toLowerCase()] || [];
         eventHandlers.forEach(handler => handler());
-    });
+    }, true);
     element.ownerDocument.addEventListener('keyup', event => {
         keyToIsDown[event.key.toLowerCase()] = false;
         const eventHandlers = keyToKeyDownHandlers[event.key.toLowerCase()] || [];
         eventHandlers.forEach(handler => handler());
-    });
+    }, true);
 
     const inputManager = {
         isKeyDown,

@@ -14,44 +14,44 @@ interface StateEvent {
 
 // TODO: Don't use Vuex, placeholder until custom implementation
 import Vue from 'vue';
-import Vuex from 'vuex';
+import Vuex, { Store, StoreOptions } from 'vuex';
 
 Vue.use(Vuex);
 
-const createStore = Vuex.Store;
+const createStore: <S>(options: StoreOptions<S>) => Store<S> = (options) => new Vuex.Store(options);
 export {
     createStore,
 };
 
-interface CreateStoreConfig<StateStructure> {
-    state: StateStructure;
-    getters?: Record<string, <Result> (state: StateStructure) => Result>;
-    events: Record<string, <Arg> (state: StateStructure, eventData: Arg) => void>;
-}
+// interface CreateStoreConfig<StateStructure> {
+//     state: StateStructure;
+//     getters?: Record<string, <Result> (state: StateStructure) => Result>;
+//     events: Record<string, <Arg> (state: StateStructure, eventData: Arg) => void>;
+// }
 
-interface Store {
+// interface Store {
 
-}
-
-
-function createStoreCustom_TODO<StateStructure>(config: CreateStoreConfig<StateStructure>): Store {
-    // TODO: Instrument proxy interception
-    const state = config.state;
+// }
 
 
-    return {
-        recordEvent,
-    };
+// function createStoreCustom_TODO<StateStructure>(config: CreateStoreConfig<StateStructure>): Store {
+//     // TODO: Instrument proxy interception
+//     const state = config.state;
 
-    function recordEvent<Arg>(eventName: string, eventData: Arg): void {
-        const eventHandler = config.events[eventName];
-        if (!eventHandler) {
-            throw new Error(`Event Name: ${eventName} is invalid!`);
-        }
 
-        eventHandler<Arg>(state, eventData);
-    }
-}
+//     return {
+//         recordEvent,
+//     };
+
+//     function recordEvent<Arg>(eventName: string, eventData: Arg): void {
+//         const eventHandler = config.events[eventName];
+//         if (!eventHandler) {
+//             throw new Error(`Event Name: ${eventName} is invalid!`);
+//         }
+
+//         eventHandler<Arg>(state, eventData);
+//     }
+// }
 
 
 // Flow:
