@@ -32,10 +32,12 @@ function createGameStore() {
                 }
             },
             keyDown(state, key) {
-                const playerMovementKeys =  ['w', 'a', 's', 'd'];
-                if (playerMovementKeys.includes(key)) {
-                    updatePlayerVelocity(state.game, state.player);
-                }
+                // const playerMovementKeys =  ['w', 'a', 's', 'd'];
+                // if (playerMovementKeys.includes(key)) {
+                //     updatePlayerVelocity(state.game, state.player);
+                // }
+
+                state.player.handleInput(key);
 
                 const playerShootKey = ' ';
                 if (key === playerShootKey) {

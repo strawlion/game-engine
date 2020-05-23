@@ -30,17 +30,6 @@ interface GameObjectConfig {
     onCollision?: (otherObject: GameObject) => void;
 }
 
-// TODO: Extract pixi to a plugin (SOC)
-
-// PIXI
-// const renderObjectContainer = new PIXI.Container();
-// app.stage.addChild(renderObjectContainer);
-// PIXI
-
-// TODO: Stage, container
-// https://github.com/Coder2012/pixi/tree/master/spaceshooter
-// https://codepen.io/celsowhite/pen/XWbEzpx
-
 export {
     createGame,
     GameObject,
