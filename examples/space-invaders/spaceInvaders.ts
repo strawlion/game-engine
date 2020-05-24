@@ -139,7 +139,7 @@ function createPlayer(game: Game<GameState>, { x, y }) {
             x,
             y,
             radius: 25,
-            rotation: Math.PI
+            rotation: 0,//Math.PI /2
         }),
     });
     return player;
@@ -166,10 +166,7 @@ function createPlayer(game: Game<GameState>, { x, y }) {
                 x: player.body.x,
                 y: player.body.y,
                 radius: 5,
-                velocity: {
-                    x: 0,
-                    y: -3,
-                }
+                velocity: getDirectionVector(player.body.rotation),
             }),
             // TODO: On out of bounds
             onCollision(otherObj) {
@@ -192,4 +189,14 @@ interface GameState {
     invaders?: GameObject[];
     player?: GameObject;
     projectiles?: GameObject[]; // TODO: Should we "nest" objects, e.g. since these are "owned" by player, store as field on player?
+}
+
+
+// TODO: Math not right
+// 0 UP, [0, 2PI]
+function getDirectionVector(radians) {
+    return {
+        x: Math.cos(radians + (Math.PI / 2)),
+        y: Math.sin(radians - (Math.PI / 2)),
+    };
 }

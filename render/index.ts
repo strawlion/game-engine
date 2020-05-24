@@ -64,14 +64,20 @@ function createRenderer(config: { width: number, height: number}): Renderer {
         context.fillRect(0, 0, canvas.width, canvas.height);
 
         for (const object of objects) {
+            context.save();
 
             // TODO: Separate rotation for render Object
             context.translate(
                 // TODO: Why is this math necessary?
-                object.body.x + canvas.width/2,
-                object.body.y + canvas.height/2,
+                object.body.x,// + canvas.width/2,
+                object.body.y,// + canvas.height/2,
             );
             context.rotate(object.body.rotation);
+            context.translate(
+                // TODO: Why is this math necessary?
+                -1 * object.body.x,// + canvas.width/2,
+                -1 * object.body.y,// + canvas.height/2,
+            );
 
             if (object.renderBody) {
                 const widthOffset = object.renderBody.image.width / 2;
