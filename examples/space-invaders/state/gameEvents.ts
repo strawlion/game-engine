@@ -2,9 +2,9 @@ import gameStore from './gameStore';
 import { Game } from '../../../src';
 
 export default {
-    gameInitialized,
+    // gameInitialized,
 };
 
-function gameInitialized(game: Game) {
-    gameStore.commit('gameInitialized', game);
-}
+// function gameInitialized(game: Game) {
+//     gameStore.commit('gameInitialized', game);
+// }

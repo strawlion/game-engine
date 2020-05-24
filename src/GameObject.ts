@@ -6,9 +6,7 @@ export default interface GameObject {
     type: string;
     body: Body;
     renderBody?: RenderBody;
-    readonly isDestroyed: boolean;
 
     update?: () => any;
     onCollision?: (otherObject: GameObject) => any;
-    destroy: () => void;
 }

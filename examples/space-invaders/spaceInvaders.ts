@@ -10,9 +10,9 @@ async function setupGame() {
     const game = await createGame<GameState>({
         width: 800,
         height: 600,
-        update,
+        container: document.body,
+        // update,
         async initialize(game) {
-            document.body.appendChild(game.renderer.view);
             const assets = [
                 'images/galaga-ship.png',
                 'images/space-invader.png'
@@ -25,6 +25,7 @@ async function setupGame() {
                 return [
                     ...state.invaders,
                     state.player,
+                    ...state.projectiles,
                 ];
             },
             events: {
@@ -33,6 +34,7 @@ async function setupGame() {
                         game,
                         invaders: createInvaderWaveOne(game),
                         player: createPlayer(game, { x: 400, y: 200 }),
+                        projectiles: [],
                     });
                 },
             },
@@ -43,10 +45,10 @@ async function setupGame() {
 
     game.start();
 
-    function update() {
+    // function update() {
         // TODO: Don't recreate world every frame, use iterable over multiple arrays
-        game.world = gameStore.getters.world;
-    }
+        // game.world = gameStore.getters.world;
+    // }
 }
 
 
@@ -75,9 +77,8 @@ function createInvaderWaveOne(game: Game<GameState>) {
             onCollision(otherObj) {
                 // TODO: design objects such that they can't destroy others in their handlers
                 // All objects should maintain their own state. Does that make sense?
-                if (otherObj.type === 'Player') {
-                    invader.destroy();
-                    invaders = invaders.filter(i => i !== invader)
+                if (otherObj.type === 'Projectile') {
+                    game.store.state.invaders = game.store.state.invaders.filter(i => i !== invader);
                 }
             },
         });
@@ -114,23 +115,25 @@ function createPlayer(game: Game<GameState>, { x, y }) {
         image: 'images/galaga-ship.png',
         // TODO: Should input handlers still be per obj, but global handler calls them?
         input: {
-            // 'w': {
-            //     onKeyDown: updatePlayerVelocity,
-            //     onKeyUp: updatePlayerVelocity,
-            // },
-            // 'a': {
-            //     onKeyDown: updatePlayerVelocity,
-            //     onKeyUp: updatePlayerVelocity,
-            // },
-            // 's': {
-            //     onKeyDown: updatePlayerVelocity,
-            //     onKeyUp: updatePlayerVelocity,
-            // },
-            // 'd': {
-            //     onKeyDown: updatePlayerVelocity,
-            //     onKeyUp: updatePlayerVelocity,
-            // },
-            // ' ': fireBullet,
+            'w': {
+                onKeyDown: updatePlayerVelocity,
+                onKeyUp: updatePlayerVelocity,
+            },
+            'a': {
+                onKeyDown: updatePlayerVelocity,
+                onKeyUp: updatePlayerVelocity,
+            },
+            's': {
+                onKeyDown: updatePlayerVelocity,
+                onKeyUp: updatePlayerVelocity,
+            },
+            'd': {
+                onKeyDown: updatePlayerVelocity,
+                onKeyUp: updatePlayerVelocity,
+            },
+            ' ': {
+                onKeyDown: fireBullet,
+            }
         },
         body: Physics.Bodies.circle({
             x,
@@ -142,22 +145,42 @@ function createPlayer(game: Game<GameState>, { x, y }) {
 
     // TODO: Should we modify player here or in the store?
     // Store is better since we may need to update other objects
-    // function updatePlayerVelocity() {
-    //     const velocity = { x: 0, y: 0 };
-    //     const speed = 2;
-    //     game.inputManager
-    //     .ifKeyDown('w', () => velocity.y -= speed)
-    //     .ifKeyDown('a', () => velocity.x -= speed)
-    //     .ifKeyDown('s', () => velocity.y += speed)
-    //     .ifKeyDown('d', () => velocity.x += speed)
+    function updatePlayerVelocity() {
+        const velocity = { x: 0, y: 0 };
+        const speed = 2;
+        game.inputManager
+        .ifKeyDown('w', () => velocity.y -= speed)
+        .ifKeyDown('a', () => velocity.x -= speed)
+        .ifKeyDown('s', () => velocity.y += speed)
+        .ifKeyDown('d', () => velocity.x += speed)
 
 
-    //     player.body.velocity = velocity;
-    // }
+        player.body.velocity = velocity;
+    }
 
-    // function fireBullet() {
+    function fireBullet() {
+        const projectile = game.createGameObject({
+            type: 'Projectile',
+            body: Physics.Bodies.circle({
+                x: player.body.x,
+                y: player.body.y,
+                radius: 5,
+                velocity: {
+                    x: 0,
+                    y: -3,
+                }
+            }),
+            onCollision(otherObj) {
+                // TODO: design objects such that they can't destroy others in their handlers
+                // All objects should maintain their own state. Does that make sense?
+                if (otherObj.type === 'Invader') {
+                    game.store.state.projectiles = game.store.state.projectiles.filter(p => p !== projectile);
+                }
+            },
+        });
 
-    // }
+        game.store.state.projectiles.push(projectile);
+    }
 }
 
 
