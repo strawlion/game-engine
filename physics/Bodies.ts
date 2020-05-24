@@ -24,6 +24,11 @@ function circle(config: {
         y: number;
         radius: number;
         velocity?: Vector;
+        rotation?: number;
     }): Body {
-    return config;
+    return {
+        ...config,
+        velocity: config.velocity || { x: 0, y: 0 },
+        rotation: config.rotation || 0,
+    };
 }

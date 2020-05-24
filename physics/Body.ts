@@ -4,5 +4,6 @@ export default interface Body {
     x: number;
     y: number;
     radius: number;
-    velocity?: Vector;
+    velocity: Vector;
+    rotation: number;
 }

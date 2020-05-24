@@ -32,7 +32,7 @@ async function setupGame() {
                 gameInitialized(state, game: Game<GameState>) {
                     Object.assign(state, {
                         game,
-                        invaders: createInvaderWaveOne(game),
+                        invaders: [],//createInvaderWaveOne(game),
                         player: createPlayer(game, { x: 400, y: 200 }),
                         projectiles: [],
                     });
@@ -139,6 +139,7 @@ function createPlayer(game: Game<GameState>, { x, y }) {
             x,
             y,
             radius: 25,
+            rotation: Math.PI
         }),
     });
     return player;
@@ -170,6 +171,7 @@ function createPlayer(game: Game<GameState>, { x, y }) {
                     y: -3,
                 }
             }),
+            // TODO: On out of bounds
             onCollision(otherObj) {
                 // TODO: design objects such that they can't destroy others in their handlers
                 // All objects should maintain their own state. Does that make sense?
