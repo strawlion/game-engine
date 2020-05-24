@@ -2,13 +2,19 @@ import Body from '../physics/Body';
 import Renderer from '../render';
 import Physics from '../physics';
 import GameObject from './GameObject';
+import { createStore } from '../stateManager/stateManager';
+import { Store } from 'vuex';
 
-interface GameConfig {
+interface GameConfig<GameState> {
     width: number;
     height: number;
-    targetGameLogicFrameRate: number;
+    targetGameLogicFrameRate?: number;
+    initialize: (game: Game<GameState>) => (void | Promise<void>);
+    state: {
+        getWorld: (state: GameState) => GameObject[];
+        events: Record<string, (state: GameState, data) => void>;
+    };
     onStart?: () => void;
-    // processInput: () => any;
     update?: () => void;
     render?: (distanceBetweenGameLogicFrames: number) => void;
 }
@@ -35,7 +41,7 @@ export {
     GameObject,
 };
 
-export interface Game {
+export interface Game<GameState> {
     width: number;
     height: number;
     start: () => any;
@@ -44,25 +50,58 @@ export interface Game {
     inputManager:  ReturnType<typeof getInputManager>;
     createGameObject: (config: GameObjectConfig) => GameObject;
     assetLoader: ReturnType<typeof Renderer.createAssetLoader>;
-    world: GameObject[];
+    store: Store<GameState>
 }
 
-function createGame(config: GameConfig): Game {
+interface BaseGameState<GameState> {
+    game?: Game<GameState>;
+}
+
+async function createGame<GameState extends BaseGameState<GameState>>(config: GameConfig<GameState>): Game<GameState> {
 
     const {
-        targetGameLogicFrameRate,
+        targetGameLogicFrameRate = 60,
         update,
         render,
+        state,
+        initialize,
     } = config;
 
     const renderer = Renderer.createRenderer(config);
+    const store = createStore<GameState>({
+        // state: {},
+        mutations: {
+            update(state) {
+                const { game } = state;
+                const world = config.state.getWorld(state);
+                if (update) {
+                    update();
+                }
+
+
+                Physics.nextTick(game, world);
+
+                // Update - Trigger handlers
+                for (const gameObject of world) {
+                    if (gameObject.update) {
+                        gameObject.update();
+                    }
+                }
+
+                // TODO: Is this right place for remove? Can we avoid mutability
+                // by doing removal externally? A lot of work for the game creator though
+                // game.world = game.world.filter(object => !object.isDestroyed);
+            }
+        },
+    });
+
     const inputManager = getInputManager(renderer.view);
 
     const MS_PER_UPDATE = 1000 / targetGameLogicFrameRate;
 
     const assetLoader = Renderer.createAssetLoader();
 
-    const game: Game = {
+    const game: Game<GameState> = {
         width: config.width,
         height: config.height,
         start,
@@ -71,8 +110,13 @@ function createGame(config: GameConfig): Game {
         inputManager,
         createGameObject,
         assetLoader,
-        world: [],
+        store,
     };
+
+    if (initialize) {
+        await initialize(game);
+    }
+
 
     return game;
 
@@ -120,22 +164,7 @@ function createGame(config: GameConfig): Game {
             while (timeBehindRealWorld >= MS_PER_UPDATE) {
                 // Update
                 (() => {
-                    if (update) {
-                        update();
-                    }
-
-                    Physics.nextTick(game, game.world);
-
-                    // Update - Trigger handlers
-                    for (const gameObject of game.world) {
-                        if (gameObject.update) {
-                            gameObject.update();
-                        }
-                    }
-
-                    // TODO: Is this right place for remove? Can we avoid mutability
-                    // by doing removal externally? A lot of work for the game creator though
-                    game.world = game.world.filter(object => !object.isDestroyed);
+                    store.commit('update')
                 })()
 
                 timeBehindRealWorld -= MS_PER_UPDATE;
@@ -145,7 +174,8 @@ function createGame(config: GameConfig): Game {
 
             // Render - Variable timestep
             (() => {
-                game.renderer.nextTick(game.world);
+                const world = config.state.getWorld(store.state);
+                game.renderer.nextTick(world);
                 if (render) {
                     render(distanceBetweenGameLogicFrames);
                 }
