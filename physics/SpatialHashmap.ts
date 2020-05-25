@@ -2,6 +2,7 @@
 
 import Vector from './Vector';
 import { clamp } from 'lodash';
+import Body from './body/Body';
 
 interface SpatialHashmapConfig {
     width: number;
@@ -9,15 +10,8 @@ interface SpatialHashmapConfig {
     cellSize: number;
 }
 
-interface Circle {
-    x: number;
-    y: number;
-    radius: number;
-}
-
-// TODO: assuming always circle
 interface MapObject {
-    body: Circle;
+    body: Body;
 }
 
 interface MapCell {

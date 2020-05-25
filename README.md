@@ -15,7 +15,15 @@ graph TD
   C[Collision]
 ```
 
+# Design
+Dedicated state manager?
+
+-
+-
+
 # TODO
+- Multi-layer collision detection.
+  - AABB first, then circle etc
 - What order should game run things in?
     - e.g. Collision detection before update?
 - Recommended state management approach?

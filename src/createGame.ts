@@ -5,7 +5,7 @@ import { createStore } from '../stateManager/stateManager';
 import GameObjectConfig from './GameObjectConfig';
 import Game from './Game';
 import getInputManager from './input/createInputManager';
-import InputEventId from './input/InputEventId';
+import InputEventId from './input/KeyEventId';
 
 export default createGame;
 
@@ -95,7 +95,13 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
         // TODO: Can do this in a more performant way
         // TOOD: How to deregister later
         if (config.input) {
-            inputManager.register(config.input);
+            if (config.input.keys) {
+                inputManager.registerKeyEvents(config.input.keys);
+            }
+            if (config.input.mouse) {
+                inputManager.registerMouseEvents(config.input.mouse);
+            }
+
         }
 
         if (config.image) {

@@ -32,7 +32,7 @@ async function setupGame() {
                 gameInitialized(state, game: Game<GameState>) {
                     Object.assign(state, {
                         game,
-                        invaders: [],//createInvaderWaveOne(game),
+                        invaders: createInvaderWaveOne(game),
                         player: createPlayer(game, { x: 400, y: 200 }),
                         projectiles: [],
                     });
@@ -115,31 +115,43 @@ function createPlayer(game: Game<GameState>, { x, y }) {
         image: 'images/galaga-ship.png',
         // TODO: Should input handlers still be per obj, but global handler calls them?
         input: {
-            'w': {
-                onKeyDown: updatePlayerVelocity,
-                onKeyUp: updatePlayerVelocity,
+            keys: {
+                'w': {
+                    onKeyDown: updatePlayerVelocity,
+                    onKeyUp: updatePlayerVelocity,
+                },
+                'a': {
+                    onKeyDown: updatePlayerVelocity,
+                    onKeyUp: updatePlayerVelocity,
+                },
+                's': {
+                    onKeyDown: updatePlayerVelocity,
+                    onKeyUp: updatePlayerVelocity,
+                },
+                'd': {
+                    onKeyDown: updatePlayerVelocity,
+                    onKeyUp: updatePlayerVelocity,
+                },
+                ' ': {
+                    onKeyDown: fireBullet,
+                },
             },
-            'a': {
-                onKeyDown: updatePlayerVelocity,
-                onKeyUp: updatePlayerVelocity,
-            },
-            's': {
-                onKeyDown: updatePlayerVelocity,
-                onKeyUp: updatePlayerVelocity,
-            },
-            'd': {
-                onKeyDown: updatePlayerVelocity,
-                onKeyUp: updatePlayerVelocity,
-            },
-            ' ': {
-                onKeyDown: fireBullet,
+            mouse: {
+                onMouseDown() {
+
+                },
+                onMouseMove() {
+
+                },
+                onMouseUp() {
+
+                }
             }
         },
         body: Physics.Bodies.circle({
             x,
             y,
             radius: 25,
-            rotation: 0,//Math.PI /2
         }),
     });
     return player;
@@ -191,12 +203,9 @@ interface GameState {
     projectiles?: GameObject[]; // TODO: Should we "nest" objects, e.g. since these are "owned" by player, store as field on player?
 }
 
-
-// TODO: Math not right
-// 0 UP, [0, 2PI]
 function getDirectionVector(radians) {
     return {
-        x: Math.cos(radians + (Math.PI / 2)),
-        y: Math.sin(radians - (Math.PI / 2)),
+        x: Math.sin(radians),
+        y: -Math.cos(radians),
     };
 }

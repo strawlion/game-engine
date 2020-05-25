@@ -1,5 +1,8 @@
-import InputEventId from './InputEventId';
-import InputEventHandlers from './InputEventHandler';
+import KeyEventId from './KeyEventId';
+import KeyEventHandlers from './KeyEventHandler';
+import MouseInfo from './MouseInfo';
+import MouseEventHandler from './MouseEventHandler';
+import MouseEventHandlers from './MouseEventHandlers';
 
 export default getInputManager;
 
@@ -12,17 +15,40 @@ function getInputManager(element) {
     const keyToKeyDownHandlers = {};
     const keyToKeyUpHandlers = {};
 
+
+    const mouseInfo: MouseInfo = {
+        isMouseDown: false,
+        x: null,
+        y: null,
+    };
+    const mousemoveHandlers: MouseEventHandler[] = [];
+    const mousedownHandlers: MouseEventHandler[] = [];
+    const mouseupHandlers: MouseEventHandler[] = [];
+
+
     // TODO: Should we set this on the input element instead?
     element.ownerDocument.addEventListener('keydown', event => {
-        console.log('key down event');
         keyToIsDown[event.key.toLowerCase()] = true;
-        const eventHandlers = keyToKeyDownHandlers[event.key.toLowerCase()] || [];
-        eventHandlers.forEach(handler => handler());
+        callHandlers(event.key.toLowerCase());
     }, true);
     element.ownerDocument.addEventListener('keyup', event => {
         keyToIsDown[event.key.toLowerCase()] = false;
-        const eventHandlers = keyToKeyDownHandlers[event.key.toLowerCase()] || [];
-        eventHandlers.forEach(handler => handler());
+        callHandlers(event.key.toLowerCase());
+    }, true);
+
+    element.ownerDocument.addEventListener('mousedown', (event: MouseEvent) => {
+        mouseInfo.isMouseDown = true;
+        onMouseEvent(event, mousedownHandlers);
+    }, true);
+
+    element.ownerDocument.addEventListener('mousemove', (event: MouseEvent) => {
+        mouseInfo.isMouseDown = true;
+        onMouseEvent(event, mousemoveHandlers);
+    }, true);
+
+    element.ownerDocument.addEventListener('mouseup', event => {
+        mouseInfo.isMouseDown = false;
+        onMouseEvent(event, mouseupHandlers);
     }, true);
 
     const inputManager = {
@@ -30,11 +56,12 @@ function getInputManager(element) {
         ifKeyDown,
         onKeyDown,
         onKeyUp,
-        register,
+        registerKeyEvents,
+        registerMouseEvents,
     };
     return inputManager;
 
-    function register(inputs: Partial<Record<InputEventId, InputEventHandlers>>) {
+    function registerKeyEvents(inputs: Partial<Record<KeyEventId, KeyEventHandlers>>) {
         for (const [key, value] of Object.entries(inputs)) {
             if (value.onKeyDown) {
                 onKeyDown(key, value.onKeyDown);
@@ -43,7 +70,18 @@ function getInputManager(element) {
                 onKeyUp(key, value.onKeyUp);
             }
         }
+    }
 
+    function registerMouseEvents(inputs: MouseEventHandlers) {
+        if (inputs.onMouseDown) {
+            mousedownHandlers.push(inputs.onMouseDown);
+        }
+        if (inputs.onMouseMove) {
+            mousemoveHandlers.push(inputs.onMouseMove);
+        }
+        if (inputs.onMouseUp) {
+            mouseupHandlers.push(inputs.onMouseUp);
+        }
     }
 
 
@@ -70,4 +108,16 @@ function getInputManager(element) {
         eventHandlers.push(fn);
         return inputManager;
     }
+
+    function callHandlers(key) {
+        const eventHandlers = keyToKeyDownHandlers[key] || [];
+        eventHandlers.forEach(handler => handler());
+    }
+
+    function onMouseEvent(event, handlers) {
+        mouseInfo.x = event.offsetX;
+        mouseInfo.y = event.offsetY;
+        handlers.forEach(handler => handler(mouseInfo));
+    }
+
 }

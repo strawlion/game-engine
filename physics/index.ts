@@ -1,7 +1,9 @@
-import Bodies from './Bodies';
-import Body from './Body';
+import Bodies from './body/Bodies';
+import Body from './body/Body';
 import Vector from './Vector';
 import SpatialHashmap from './SpatialHashmap';
+import Rectangle from './body/Rectangle';
+import Circle from './body/Circle';
 
 interface PhysicsObject {
     body: Body;
@@ -77,7 +79,15 @@ function checkForCollisions(world: PhysicsWorld, objects: PhysicsObject[]) {
 }
 
 function isTouching(body: Body, otherBody: Body) {
-    return distanceBetween(body, otherBody) <= (body.radius + otherBody.radius);
+    if (body.type === 'circle' && otherBody.type === 'circle') {
+        return areCirclesTouching(body, otherBody);
+    }
+    else if (body.type === 'rectangle' && otherBody.type === 'rectangle') {
+        return areRectanglesTouching(body, otherBody);
+    }
+
+    // TODO: finish
+
 }
 
 function distanceBetween(point: Vector, otherPoint: Vector) {
@@ -90,4 +100,61 @@ function forEachPair<T>(values, fn: (value: T, otherValue: T) => any) {
             fn(values[i], values[j]);
         }
     }
+}
+
+
+function areCirclesTouching(body: Circle, otherBody: Circle) {
+    return distanceBetween(body, otherBody) <= (body.radius + otherBody.radius);
+}
+
+function areRectanglesTouching(body: Rectangle, otherBody: Rectangle) {
+    return (
+        // Is the RIGHT edge of r1 to the RIGHT of the LEFT edge of r2?
+        ((body.x + body.width) > otherBody.x) &&
+
+        // Is the LEFT edge of r1 to the LEFT of the RIGHT edge of r2?
+        (body.x > (otherBody.x + otherBody.width)) &&
+
+        // Is the BOTTOM edge of r1 BELOW the TOP edge of r2?
+        ((body.y + body.height) > otherBody.y) &&
+
+        // Is the TOP edge of r1 ABOVE the BOTTOM edge of r2?
+        (body.y > (otherBody.y + otherBody.height))
+    );
+}
+
+// TODO: is this logic correct?
+function isCircleTouchingRectangle(circle: Circle, rectangle: Rectangle) {
+
+    // temporary variables to set edges for testing
+    let testX = circle.x;
+    let testY = circle.y;
+
+    // which edge is closest?
+    if (circle.x < rectangle.x) { // test left edge
+        testX = rectangle.x;
+    }
+    else if (circle.x > (rectangle.x + rectangle.width)) {// right edge
+        testX = rectangle.x + rectangle.width;
+    }
+    if (circle.y < rectangle.y) { // top edge
+        testY = rectangle.y;
+    }
+    else if (circle.y > (rectangle.y + rectangle.height)) { // bottom edge
+        testY = rectangle.y + rectangle.height;
+    }
+
+    // get distance from closest edges
+    const distX = circle.x - testX;
+    const distY = circle.y - testY;
+    const distance = Math.sqrt(distX**2 + distY**2);
+
+    // if the distance is less than the radius, collision!
+    return distance <= circle.radius;
+}
+
+// TODO: Optimize
+// https://gamedev.stackexchange.com/questions/96337/collision-between-aabb-and-circle
+function areShapesTouching() {
+
 }

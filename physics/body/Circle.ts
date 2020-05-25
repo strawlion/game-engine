@@ -1,6 +1,7 @@
-import Vector from './Vector';
+import Vector from '../Vector';
 
-export default interface Body {
+export default interface Circle {
+    type: 'circle';
     x: number;
     y: number;
     radius: number;
