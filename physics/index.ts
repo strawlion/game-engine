@@ -1,7 +1,7 @@
 import Bodies from './body/Bodies';
 import Body from './body/Body';
 import Vector from './Vector';
-import SpatialHashmap from './SpatialHashmap';
+import SpatialHashmap from './collision/SpatialHashmap';
 import Rectangle from './body/Rectangle';
 import Circle from './body/Circle';
 

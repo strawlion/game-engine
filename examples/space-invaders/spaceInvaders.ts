@@ -2,6 +2,7 @@ import { createGame, Game, GameObject } from '../../src/index';
 import gameStore from './state/gameStore';
 import gameEvents from './state/gameEvents';
 import Physics from '../../physics';
+import Vector from '../../physics/Vector';
 
 
 setupGame();
@@ -23,7 +24,7 @@ async function setupGame() {
             // TODO: Use iterable, don't recreate array
             getWorld(state) {
                 return [
-                    // ...state.invaders,
+                    ...state.invaders,
                     state.player,
                     ...state.projectiles,
                     ...state.worldBounds,
@@ -176,7 +177,7 @@ function createPlayer(game: Game<GameState>, { x, y }) {
                 x: player.body.x,
                 y: player.body.y,
                 radius: 5,
-                velocity: getDirectionVector(player.body.rotation),
+                velocity: multiply(getDirectionVector(player.body.rotation), 4),
             }),
             // TODO: On out of bounds
             onCollision(otherObj) {
@@ -254,5 +255,13 @@ function getDirectionVector(radians) {
     return {
         x: Math.sin(radians),
         y: -Math.cos(radians),
+    };
+}
+
+// TODO: rename/rework
+function multiply(vector: Vector, value: number): Vector {
+    return {
+        x: vector.x * value,
+        y: vector.y * value,
     };
 }
