@@ -23,9 +23,10 @@ async function setupGame() {
             // TODO: Use iterable, don't recreate array
             getWorld(state) {
                 return [
-                    ...state.invaders,
+                    // ...state.invaders,
                     state.player,
                     ...state.projectiles,
+                    ...state.worldBounds,
                 ];
             },
             events: {
@@ -35,6 +36,7 @@ async function setupGame() {
                         invaders: createInvaderWaveOne(game),
                         player: createPlayer(game, { x: 400, y: 200 }),
                         projectiles: [],
+                        worldBounds: createWorldBounds(game),
                     });
                 },
             },
@@ -137,15 +139,11 @@ function createPlayer(game: Game<GameState>, { x, y }) {
                 },
             },
             mouse: {
-                onMouseDown() {
-
+                onMouseDown: fireBullet,
+                onMouseMove(mouseInfo) {
+                    player.body.x = mouseInfo.x;
+                    player.body.y = mouseInfo.y;
                 },
-                onMouseMove() {
-
-                },
-                onMouseUp() {
-
-                }
             }
         },
         body: Physics.Bodies.circle({
@@ -184,7 +182,7 @@ function createPlayer(game: Game<GameState>, { x, y }) {
             onCollision(otherObj) {
                 // TODO: design objects such that they can't destroy others in their handlers
                 // All objects should maintain their own state. Does that make sense?
-                if (otherObj.type === 'Invader') {
+                if (otherObj.type === 'Invader' || otherObj.type === 'WorldBound') {
                     game.store.state.projectiles = game.store.state.projectiles.filter(p => p !== projectile);
                 }
             },
@@ -194,6 +192,54 @@ function createPlayer(game: Game<GameState>, { x, y }) {
     }
 }
 
+function createWorldBounds(game: Game<GameState>) {
+    return [
+        // Top
+        createWorldBound(game, {
+            x: 1,
+            y: -1,
+            width: game.width,
+            height: 1
+        }),
+        // Left
+        createWorldBound(game, {
+            x: -1,
+            y: 1,
+            width: 1,
+            height: game.height,
+        }),
+        // Right
+        createWorldBound(game, {
+            x: game.width + 1,
+            y: 1,
+            width: 1,
+            height: game.height,
+        }),
+        // Bottom
+        createWorldBound(game, {
+            x: 1,
+            y: game.height,
+            width: game.width,
+            height: 1,
+        }),
+    ];
+
+
+    function createWorldBound(game: Game<GameState>, { x, y, width, height }) {
+        return game.createGameObject({
+            type: 'WorldBound',
+            body: Physics.Bodies.rectangle({
+                x,
+                y,
+                width,
+                height,
+            })
+        });
+    }
+
+
+}
+
 
 
 interface GameState {
@@ -201,6 +247,7 @@ interface GameState {
     invaders?: GameObject[];
     player?: GameObject;
     projectiles?: GameObject[]; // TODO: Should we "nest" objects, e.g. since these are "owned" by player, store as field on player?
+    worldBounds?: GameObject[]; // TODO: Should we do this by default?
 }
 
 function getDirectionVector(radians) {

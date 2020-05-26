@@ -1,6 +1,33 @@
 import Renderer from './Renderer';
 import RenderObject from './RenderObject';
+import Circle from '../physics/body/Circle';
+import Rectangle from '../physics/body/Rectangle';
 
+const Shape = {
+    circle: {
+        render(context: CanvasRenderingContext2D, circle: Circle) {
+            context.beginPath();
+            context.arc(circle.x, circle.y, circle.radius, 0, 2 * Math.PI);
+            context.lineWidth = 1;
+            context.strokeStyle = '#999';
+            context.stroke();
+        }
+    },
+    rectangle: {
+        render(context: CanvasRenderingContext2D, rectangle: Rectangle) {
+            context.beginPath();
+            context.rect(
+                rectangle.x,
+                rectangle.y,
+                rectangle.width,
+                rectangle.height
+            );
+            context.lineWidth = 1;
+            context.strokeStyle = '#999';
+            context.stroke();
+        }
+    }
+}
 
 export default {
     createAssetLoader,
@@ -69,14 +96,14 @@ function createRenderer(config: { width: number, height: number}): Renderer {
             // TODO: Separate rotation for render Object
             context.translate(
                 // TODO: Why is this math necessary?
-                object.body.x,// + canvas.width/2,
-                object.body.y,// + canvas.height/2,
+                object.body.x,
+                object.body.y,
             );
             context.rotate(object.body.rotation);
             context.translate(
                 // TODO: Why is this math necessary?
-                -1 * object.body.x,// + canvas.width/2,
-                -1 * object.body.y,// + canvas.height/2,
+                -1 * object.body.x,
+                -1 * object.body.y,
             );
 
             if (object.renderBody) {
@@ -99,11 +126,8 @@ function createRenderer(config: { width: number, height: number}): Renderer {
             context.restore();
 
             function drawBody() {
-                context.beginPath();
-                context.arc(object.body.x, object.body.y, object.body.radius, 0, 2 * Math.PI);
-                context.lineWidth = 1;
-                context.strokeStyle = '#999';
-                context.stroke();
+                // @ts-ignore
+                Shape[object.body.type].render(context, object.body);
             }
         }
 

@@ -1,4 +1,4 @@
-import Body from '../physics/Body';
+import Body from '../physics/body/Body';
 import RenderBody from '../render/RenderBody';
 
 export default interface GameObject {

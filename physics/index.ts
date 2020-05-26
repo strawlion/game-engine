@@ -47,11 +47,23 @@ function checkForCollisions(world: PhysicsWorld, objects: PhysicsObject[]) {
     const objectToPreviouslyCollided = new Map<PhysicsObject, Set<PhysicsObject>>();
 
     for (const cell of potentiallyCollidingCells) {
+        // TODO: fix collision detection, projectile does not hit world bound
+        // Add unit tests for this!
+
+        // if (
+        //     // @ts-ignore
+        //     cell.objects.some(object => object.type === 'Projectile') &&
+        //     // @ts-ignore
+        //     cell.objects.some(o => o.type === 'WorldBound')
+        // ) {
+        //     debugger;
+        // }
         forEachPair<PhysicsObject>(cell.objects, checkForCollision);
     }
 
     // TODO: Don't compute collision if neither obj has collision handler
     function checkForCollision(object: PhysicsObject, otherObject: PhysicsObject) {
+
         if (isTouching(object.body, otherObject.body)) {
             handleCollision(object, otherObject);
             handleCollision(otherObject, object);
@@ -78,15 +90,21 @@ function checkForCollisions(world: PhysicsWorld, objects: PhysicsObject[]) {
     }
 }
 
+// TODO: Logic is wrong for non AABB rects, revisit
+// TODO: Optimize performance
 function isTouching(body: Body, otherBody: Body) {
-    if (body.type === 'circle' && otherBody.type === 'circle') {
-        return areCirclesTouching(body, otherBody);
-    }
-    else if (body.type === 'rectangle' && otherBody.type === 'rectangle') {
-        return areRectanglesTouching(body, otherBody);
-    }
+    const Shape = {
+        circle: {
+            circle: areCirclesTouching,
+            rectangle: isCircleTouchingRectangle,
+        },
+        rectangle: {
+            rectangle: areRectanglesTouching,
+            circle: (rect, circle) => isCircleTouchingRectangle(circle, rect),
+        }
+    };
 
-    // TODO: finish
+    return Shape[body.type][otherBody.type](body, otherBody);
 
 }
 

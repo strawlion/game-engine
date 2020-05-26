@@ -2,6 +2,7 @@ import Body from './Body';
 
 export default {
     circle,
+    rectangle,
 };
 
 interface Vector {
@@ -32,9 +33,10 @@ function rectangle(config: {
     velocity?: Vector;
     rotation?: number;
 }): Body {
-return {
-    ...config,
-    type: 'rectangle',
-    velocity: config.velocity || { x: 0, y: 0 },
-    rotation: config.rotation || 0,
-};
+    return {
+        ...config,
+        type: 'rectangle',
+        velocity: config.velocity || { x: 0, y: 0 },
+        rotation: config.rotation || 0,
+    };
+}
