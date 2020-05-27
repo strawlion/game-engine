@@ -16,12 +16,14 @@ function circle(config: {
         radius: number;
         velocity?: Vector;
         rotation?: number;
+        mass?: number;
     }): Body {
     return {
         ...config,
         type: 'circle',
         velocity: config.velocity || { x: 0, y: 0 },
         rotation: config.rotation || 0,
+        mass: config.mass || 0,
     };
 }
 
@@ -32,11 +34,13 @@ function rectangle(config: {
     height: number;
     velocity?: Vector;
     rotation?: number;
+    mass?: number;
 }): Body {
     return {
         ...config,
         type: 'rectangle',
         velocity: config.velocity || { x: 0, y: 0 },
         rotation: config.rotation || 0,
+        mass: config.mass || 0,
     };
 }

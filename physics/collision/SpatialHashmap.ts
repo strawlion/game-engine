@@ -110,6 +110,7 @@ function getSmallestEnclosingRect(circle: Circle): Rectangle {
         height: bottom - top,
         velocity: undefined,
         rotation: undefined,
+        mass: undefined,
     };
 }
 

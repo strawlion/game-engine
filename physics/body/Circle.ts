@@ -7,4 +7,5 @@ export default interface Circle {
     radius: number;
     velocity: Vector;
     rotation: number;
+    mass: number;
 }

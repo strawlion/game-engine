@@ -14,22 +14,40 @@ interface PhysicsWorld {
     height: number;
     width: number;
 }
+interface PhysicsConfig {
+    gravity: Vector;
+}
+
+const defaultConfig: PhysicsConfig = {
+    gravity: {
+        x: 0,
+        y: 0,
+    },
+}
 
 export default {
     Bodies,
     nextTick,
 };
 
-function nextTick(world: PhysicsWorld, objects: PhysicsObject[]) {
+// Euler
+// acceleration = force(time, position) / mass;
+// time += timestep;
+// position += timestep * velocity;
+// velocity += timestep * acceleration;
+
+// // Verlet
+// acceleration = force(time, position) / mass;
+// time += timestep;
+// position += timestep * (velocity + timestep * acceleration / 2);
+// newAcceleration = force(time, position) / mass;
+// velocity += timestep * (acceleration + newAcceleration)
+
+function nextTick(world: PhysicsWorld, objects: PhysicsObject[], config: PhysicsConfig = defaultConfig) {
     for (const object of objects) {
         // Update position
-        const velocity = {
-            x: 0,
-            y: 0,
-            ...object.body.velocity,
-        }
-        object.body.x += velocity.x;
-        object.body.y += velocity.y;
+        object.body.x += object.body.velocity.x - (config.gravity.x * object.body.mass);
+        object.body.y += object.body.velocity.y + (config.gravity.y * object.body.mass);
     }
 
     checkForCollisions(world, objects);

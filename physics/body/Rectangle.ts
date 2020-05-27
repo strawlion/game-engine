@@ -8,4 +8,5 @@ export default interface Rectangle {
     height: number;
     velocity: Vector;
     rotation: number;
+    mass: number;
 }
