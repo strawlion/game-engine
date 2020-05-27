@@ -1,8 +1,6 @@
 import { createGame, Game, GameObject } from '../../src/index';
-import gameStore from './state/gameStore';
-import gameEvents from './state/gameEvents';
 import Physics from '../../physics';
-import Vector from '../../physics/Vector';
+import v from '../../physics/vectorUtils';
 
 
 setupGame();
@@ -142,8 +140,9 @@ function createPlayer(game: Game<GameState>, { x, y }) {
             mouse: {
                 onMouseDown: fireBullet,
                 onMouseMove(mouseInfo) {
-                    player.body.x = mouseInfo.x;
-                    player.body.y = mouseInfo.y;
+                    player.body.rotation = v.lookTowards(player.body, mouseInfo)
+                    // player.body.x = mouseInfo.x;
+                    // player.body.y = mouseInfo.y;
                 },
             }
         },
@@ -177,7 +176,7 @@ function createPlayer(game: Game<GameState>, { x, y }) {
                 x: player.body.x,
                 y: player.body.y,
                 radius: 5,
-                velocity: multiply(getDirectionVector(player.body.rotation), 4),
+                velocity: v.multiply(v.direction(player.body.rotation), 4),
             }),
             // TODO: On out of bounds
             onCollision(otherObj) {
@@ -249,19 +248,4 @@ interface GameState {
     player?: GameObject;
     projectiles?: GameObject[]; // TODO: Should we "nest" objects, e.g. since these are "owned" by player, store as field on player?
     worldBounds?: GameObject[]; // TODO: Should we do this by default?
-}
-
-function getDirectionVector(radians) {
-    return {
-        x: Math.sin(radians),
-        y: -Math.cos(radians),
-    };
-}
-
-// TODO: rename/rework
-function multiply(vector: Vector, value: number): Vector {
-    return {
-        x: vector.x * value,
-        y: vector.y * value,
-    };
 }
