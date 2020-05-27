@@ -47,17 +47,6 @@ function checkForCollisions(world: PhysicsWorld, objects: PhysicsObject[]) {
     const objectToPreviouslyCollided = new Map<PhysicsObject, Set<PhysicsObject>>();
 
     for (const cell of potentiallyCollidingCells) {
-        // TODO: fix collision detection, projectile does not hit world bound
-        // Add unit tests for this!
-
-        // if (
-        //     // @ts-ignore
-        //     cell.objects.some(object => object.type === 'Projectile') &&
-        //     // @ts-ignore
-        //     cell.objects.some(o => o.type === 'WorldBound')
-        // ) {
-        //     debugger;
-        // }
         forEachPair<PhysicsObject>(cell.objects, checkForCollision);
     }
 

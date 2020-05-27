@@ -18,9 +18,10 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
         render,
         state,
         initialize,
+        container,
     } = config;
 
-    const renderer = Renderer.createRenderer(config);
+
     const store = createStore<GameState>({
         // state: {},
         mutations: {
@@ -57,11 +58,23 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
         },
     });
 
-    const inputManager = getInputManager(renderer.view);
 
     const MS_PER_UPDATE = 1000 / targetGameLogicFrameRate;
 
-    const assetLoader = Renderer.createAssetLoader();
+
+
+    // TODO: Should we create these with noop mocks instead of null?
+    const IS_HEADLESS_MODE = !container;
+    let renderer = null;
+    let inputManager = null;
+    let assetLoader = null;
+    if (!IS_HEADLESS_MODE) {
+        renderer = Renderer.createRenderer(config);
+        inputManager = getInputManager(renderer.view);
+        assetLoader = Renderer.createAssetLoader();
+        container.appendChild(renderer.view);
+    }
+
 
     const game: Game<GameState> = {
         width: config.width,
@@ -80,7 +93,7 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
     }
     store.commit('gameInitialized', game);
 
-    document.body.appendChild(renderer.view);
+
     return game;
 
     // TODO: Can we get away with not attaching update to game object?
@@ -104,7 +117,7 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
 
         }
 
-        if (config.image) {
+        if (config.image && assetLoader) {
             gameObject.renderBody = {
                 image: assetLoader.get(config.image)
             };

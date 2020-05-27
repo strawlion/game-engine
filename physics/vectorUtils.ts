@@ -78,5 +78,4 @@ function lookTowards(pointToRotate: Vector, pointShouldBeFacing: Vector): number
         angle +
         Math.PI/2 // atan2 assumes 0 is looking right. Our engine assumes its looking up, so adjust for this
     );
-
 }
