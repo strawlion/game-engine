@@ -29,11 +29,11 @@ function getInputManager(element) {
     // TODO: Should we set this on the input element instead?
     element.ownerDocument.addEventListener('keydown', event => {
         keyToIsDown[event.key.toLowerCase()] = true;
-        callHandlers(event.key.toLowerCase());
+        callHandlers(event.key.toLowerCase(), keyToKeyDownHandlers);
     }, true);
     element.ownerDocument.addEventListener('keyup', event => {
         keyToIsDown[event.key.toLowerCase()] = false;
-        callHandlers(event.key.toLowerCase());
+        callHandlers(event.key.toLowerCase(), keyToKeyUpHandlers);
     }, true);
 
     element.ownerDocument.addEventListener('mousedown', (event: MouseEvent) => {
@@ -109,8 +109,8 @@ function getInputManager(element) {
         return inputManager;
     }
 
-    function callHandlers(key) {
-        const eventHandlers = keyToKeyDownHandlers[key] || [];
+    function callHandlers(key, handlers) {
+        const eventHandlers = handlers[key] || [];
         eventHandlers.forEach(handler => handler());
     }
 

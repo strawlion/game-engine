@@ -22,7 +22,9 @@ Dedicated state manager?
 -
 
 # TODO
-- Gravity: https://gamedev.stackexchange.com/questions/15708/how-can-i-implement-gravity/41917#41917
+- Animations/Spritesheets
+  - NOTE: Always work with base images, generate spritesheet at prod time. Use abstraction that does not have to be aware of this.
+- Improve Gravity: https://gamedev.stackexchange.com/questions/15708/how-can-i-implement-gravity/41917#41917
 - Networking support, work on next to help guide design
   - Create wormhole mock to test this
 - Multi-layer collision detection.
@@ -67,3 +69,26 @@ https://gamedev.stackexchange.com/questions/28820/how-do-i-sync-multiplayer-game
 
 ## Assets
 https://www.spriters-resource.com/snes/metalwarriors/
+
+
+## Sprite sheet
+// Given
+assets
+  pilot
+    pilot.png
+    pilotFireOne.png
+
+Run script to generate
+Spritesheet - pilot.png
+JSON File - sheet.json
+{
+  spritesheet: './pilot.png',
+  sprites: {
+    pilot: { x: 0, y: 0, width: 100, height: 100 },
+    pilotFireOne: { x: 100, y: 0, width: 100, height: 100 }
+  }
+  // etc...
+  // higher level abstraction for animation?
+}
+
+Asset loader will

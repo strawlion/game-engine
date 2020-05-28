@@ -140,9 +140,7 @@ function createPlayer(game: Game<GameState>, { x, y }) {
             mouse: {
                 onMouseDown: fireBullet,
                 onMouseMove(mouseInfo) {
-                    player.body.rotation = v.lookTowards(player.body, mouseInfo)
-                    // player.body.x = mouseInfo.x;
-                    // player.body.y = mouseInfo.y;
+                    player.body.rotation = v.lookTowards(player.body, mouseInfo);
                 },
             }
         },

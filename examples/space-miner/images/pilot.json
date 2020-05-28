@@ -1,0 +1,12 @@
+{
+    "type": "SpritesheetDefinition",
+    "spritesheetUrl": "/images/pilot-spritesheet.json",
+    "sprites": {
+        "walkFrameOne": {
+            "x": 7,
+            "y": 18,
+            "width": 12,
+            "height": 16
+        }
+    }
+}

@@ -86,12 +86,19 @@ function createRenderer(config: { width: number, height: number}): Renderer {
         nextTick,
     }
 
+    // TODO: Don't apply drawing transforms to physics body
     function nextTick(objects: RenderObject[]) {
         context.fillStyle = '#fff';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
         for (const object of objects) {
+
+            if (!object) {
+                throw Error('Renderer - Invalid object in world!');
+            }
+
             context.save();
+
 
             // TODO: Separate rotation for render Object
             context.translate(
@@ -100,6 +107,13 @@ function createRenderer(config: { width: number, height: number}): Renderer {
                 object.body.y,
             );
             context.rotate(object.body.rotation);
+
+            if (object.renderBody.scale) {
+                context.scale(
+                    object.renderBody.scale.x,
+                    object.renderBody.scale.y,
+                )
+            }
             context.translate(
                 // TODO: Why is this math necessary?
                 -1 * object.body.x,
@@ -107,14 +121,41 @@ function createRenderer(config: { width: number, height: number}): Renderer {
             );
 
             if (object.renderBody) {
-                const widthOffset = object.renderBody.image.width / 2;
-                const heightOffset = object.renderBody.image.height / 2;
 
-                context.drawImage(
-                    object.renderBody.image,
-                    object.body.x - widthOffset,
-                    object.body.y - heightOffset,
-                );
+                // TODO: This should be general case
+                if (object.renderBody.activeFrame) {
+                    const frame = object.renderBody.frames[object.renderBody.activeFrame];
+                    const widthOffset = frame.width / 2;
+                    const heightOffset = frame.height / 2;
+                    context.drawImage(
+                        object.renderBody.image, // Full image - Could be spritesheet
+                        frame.x, // Source X
+                        frame.y, // Source Y
+                        frame.width, // Source width
+                        frame.height, // Source height
+                        object.body.x - widthOffset, // Destination X
+                        object.body.y - heightOffset, // Destination Y
+                        frame.width, // Destination width
+                        frame.height, // destination height
+                    );
+                }
+                else {
+                    const widthOffset = object.renderBody.image.width / 2;
+                    const heightOffset = object.renderBody.image.height / 2;
+                    // TODO: deprecated
+                    context.drawImage(
+                        object.renderBody.image, // Full image - Could be spritesheet
+                        0, // Source X
+                        0, // Source Y
+                        object.renderBody.image.width, // Source width
+                        object.renderBody.image.height, // Source height
+                        object.body.x - widthOffset, // Destination X
+                        object.body.y - heightOffset, // Destination Y
+                        object.renderBody.image.width, // Destination width
+                        object.renderBody.image.height, // destination height
+                    );
+
+                }
 
                 // For testing hitbox
                 drawBody();

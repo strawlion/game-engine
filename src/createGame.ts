@@ -117,11 +117,14 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
 
         }
 
-        if (config.image && assetLoader) {
-            gameObject.renderBody = {
-                image: assetLoader.get(config.image)
-            };
+        if (assetLoader) {
+            if (config.image) {
+                gameObject.renderBody = {
+                    image: assetLoader.get(config.image)
+                };
+            }
         }
+
 
         return gameObject;
     }
