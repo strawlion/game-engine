@@ -22,6 +22,7 @@ Dedicated state manager?
 -
 
 # TODO
+- Add concept of pivot(?), x,y defines top left of rect, but middle of image
 - Animations/Spritesheets
   - NOTE: Always work with base images, generate spritesheet at prod time. Use abstraction that does not have to be aware of this.
 - Improve Gravity: https://gamedev.stackexchange.com/questions/15708/how-can-i-implement-gravity/41917#41917

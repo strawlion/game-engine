@@ -38,6 +38,11 @@ function rectangle(config: {
 }): Body {
     return {
         ...config,
+        // TODO: Should x,y/origin be object center or top left?
+        // Can this be configurable?
+        // https://photonstorm.github.io/phaser3-docs/Phaser.GameObjects.Components.Origin.html
+        x: config.x,// - (config.width/2),
+        y: config.y,// - (config.height/2),
         type: 'rectangle',
         velocity: config.velocity || { x: 0, y: 0 },
         rotation: config.rotation || 0,
