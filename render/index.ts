@@ -5,16 +5,26 @@ import Rectangle from '../physics/body/Rectangle';
 
 const Shape = {
     circle: {
-        render(context: CanvasRenderingContext2D, circle: Circle) {
+        render(context: CanvasRenderingContext2D, circle: Circle, color: any = {}) {
+            const { stroke, fill } = color;
             context.beginPath();
             context.arc(circle.x, circle.y, circle.radius, 0, 2 * Math.PI);
-            context.lineWidth = 1;
-            context.strokeStyle = '#999';
-            context.stroke();
+
+            if (stroke) {
+                context.lineWidth = 1;
+                context.strokeStyle = stroke;
+                context.stroke();
+            }
+
+            if (fill) {
+                context.fillStyle = fill;
+                context.fill();
+            }
         }
     },
     rectangle: {
-        render(context: CanvasRenderingContext2D, rectangle: Rectangle) {
+        render(context: CanvasRenderingContext2D, rectangle: Rectangle, color: any = {}) {
+            const { stroke, fill } = color;
             context.beginPath();
             context.rect(
                 rectangle.x,
@@ -22,9 +32,17 @@ const Shape = {
                 rectangle.width,
                 rectangle.height
             );
-            context.lineWidth = 1;
-            context.strokeStyle = '#999';
-            context.stroke();
+
+            if (stroke) {
+                context.lineWidth = 1;
+                context.strokeStyle = stroke;
+                context.stroke();
+            }
+
+            if (fill) {
+                context.fillStyle = fill;
+                context.fill();
+            }
         }
     }
 }
@@ -108,7 +126,7 @@ function createRenderer(config: { width: number, height: number}): Renderer {
             );
             context.rotate(object.body.rotation);
 
-            if (object.renderBody.scale) {
+            if (object.renderBody && object.renderBody.scale) {
                 context.scale(
                     object.renderBody.scale.x,
                     object.renderBody.scale.y,
@@ -120,45 +138,57 @@ function createRenderer(config: { width: number, height: number}): Renderer {
                 -1 * object.body.y,
             );
 
+
             if (object.renderBody) {
 
-                // TODO: This should be general case
-                if (object.renderBody.activeFrame) {
-                    const frame = object.renderBody.frames[object.renderBody.activeFrame];
-                    const widthOffset = frame.width / 2;
-                    const heightOffset = frame.height / 2;
-                    context.drawImage(
-                        object.renderBody.image, // Full image - Could be spritesheet
-                        frame.x, // Source X
-                        frame.y, // Source Y
-                        frame.width, // Source width
-                        frame.height, // Source height
-                        object.body.x - widthOffset, // Destination X
-                        object.body.y - heightOffset, // Destination Y
-                        frame.width, // Destination width
-                        frame.height, // destination height
-                    );
-                }
-                else {
-                    const widthOffset = object.renderBody.image.width / 2;
-                    const heightOffset = object.renderBody.image.height / 2;
-                    // TODO: deprecated
-                    context.drawImage(
-                        object.renderBody.image, // Full image - Could be spritesheet
-                        0, // Source X
-                        0, // Source Y
-                        object.renderBody.image.width, // Source width
-                        object.renderBody.image.height, // Source height
-                        object.body.x - widthOffset, // Destination X
-                        object.body.y - heightOffset, // Destination Y
-                        object.renderBody.image.width, // Destination width
-                        object.renderBody.image.height, // destination height
-                    );
+                if (object.renderBody.image) {
+                    // TODO: This should be general case
+                    if (object.renderBody.activeFrame) {
+                        const frame = object.renderBody.frames[object.renderBody.activeFrame];
+                        const widthOffset = frame.width / 2;
+                        const heightOffset = frame.height / 2;
+                        context.drawImage(
+                            object.renderBody.image, // Full image - Could be spritesheet
+                            frame.x, // Source X
+                            frame.y, // Source Y
+                            frame.width, // Source width
+                            frame.height, // Source height
+                            object.body.x - widthOffset, // Destination X
+                            object.body.y - heightOffset, // Destination Y
+                            frame.width, // Destination width
+                            frame.height, // destination height
+                        );
+                    }
+                    else {
+                        const widthOffset = object.renderBody.image.width / 2;
+                        const heightOffset = object.renderBody.image.height / 2;
+                        // TODO: deprecated
+                        context.drawImage(
+                            object.renderBody.image, // Full image - Could be spritesheet
+                            0, // Source X
+                            0, // Source Y
+                            object.renderBody.image.width, // Source width
+                            object.renderBody.image.height, // Source height
+                            object.body.x - widthOffset, // Destination X
+                            object.body.y - heightOffset, // Destination Y
+                            object.renderBody.image.width, // Destination width
+                            object.renderBody.image.height, // destination height
+                        );
 
+                    }
+
+                    // For testing hitbox - temp
+                    drawBody();
                 }
 
-                // For testing hitbox
-                drawBody();
+                if (object.renderBody.shape) {
+                    // TODO: render body should be relative to physics body origin, not separate coords
+                    // @ts-ignore
+                    Shape[object.renderBody.shape.type].render(context, object.renderBody.shape, object.renderBody.color);
+                }
+
+
+
             }
             else {
                 drawBody();
@@ -168,7 +198,7 @@ function createRenderer(config: { width: number, height: number}): Renderer {
 
             function drawBody() {
                 // @ts-ignore
-                Shape[object.body.type].render(context, object.body);
+                Shape[object.body.type].render(context, object.body, { stroke: '#999' });
             }
         }
 

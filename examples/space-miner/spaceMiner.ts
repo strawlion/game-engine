@@ -1,6 +1,16 @@
 import { createGame, Game, GameObject } from '../../src/index';
 import Physics from '../../physics';
 import v from '../../physics/vectorUtils';
+import terrainGenerationUtils from '../../src/terrainGeneration/terrainGenerationUtils';
+
+// const result = terrainGenerationUtils.generateCellularGrid({
+//     width: 10,
+//     height: 10,
+//     chanceToStartAlive: 0.45,
+//     neighborLimits: [1, 3],
+//     birthNumber: 3,
+//     numberOfSteps: 3,
+// });
 
 
 setupGame();
@@ -23,7 +33,7 @@ async function setupGame() {
             getWorld(state) {
                 return [
                     state.player,
-                    // state.mech,
+                    ...state.terrain,
                 ];
             },
             events: {
@@ -33,6 +43,7 @@ async function setupGame() {
                         player: createPlayer(game, { x: 400, y: 200 }),
                         // mech: createMech(game, { x: 500, y: 200 }),
                         worldBounds: createWorldBounds(game),
+                        terrain: generateTerrain(game),
                     });
                 },
             },
@@ -185,6 +196,7 @@ interface GameState {
     game?: Game<GameState>; // TODO: Don't use full game representation here
     player?: GameObject;
     mech?: GameObject;
+    terrain: GameObject[];
 }
 
 
@@ -208,4 +220,50 @@ function createAnimation(frames: any[], config: CreateAnimationConfig) {
     function cancel() {
         clearInterval(intervalId);
     }
+}
+
+
+function generateTerrain(game: Game<GameState>) {
+    const grid = terrainGenerationUtils.generateCaveSystem({
+        width: 20,
+        height: 20,
+        cavePercentage: 0.30,
+    });
+
+    console.log(grid)
+
+    // Assuming terrain fills viewport
+    const terrainOriginY = 100;
+    const numHorizontalBlocks = grid.length;
+    const numVerticalBlocks = grid[0].length;
+    const blockWidth = game.width / numHorizontalBlocks;
+    const blockHeight = (game.height - terrainOriginY) / numVerticalBlocks;
+
+    const terrainBlocks = [];
+    for (let x = 0; x < grid.length; x++) {
+        for (let y = 0; y < grid[x].length; y++) {
+            const block = grid[x][y];
+            const body = Physics.Bodies.rectangle({
+                x: x * blockWidth,
+                y: terrainOriginY + (y * blockHeight),
+                width: blockWidth,
+                height: blockHeight,
+            })
+            terrainBlocks.push(
+                game.createGameObject({
+                    type: block,
+                    body,
+                    renderBody: {
+                        shape: body,
+                        color: {
+                            fill: block === 'cave' ? 'black' : 'burlywood',
+                        }
+
+                    }
+                })
+            );
+        }
+    }
+
+    return terrainBlocks;
 }
