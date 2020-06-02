@@ -224,11 +224,20 @@ function createAnimation(frames: any[], config: CreateAnimationConfig) {
 
 
 function generateTerrain(game: Game<GameState>) {
-    const grid = terrainGenerationUtils.generateCaveSystem({
+    const { terrainBuilder } = terrainGenerationUtils;
+    const grid = terrainBuilder<string>({
         width: 20,
         height: 20,
-        cavePercentage: 0.30,
-    });
+    })
+    .dirt({
+        threshold: 1,
+        smoothness: 1,
+    })
+    .cave({
+        threshold: 0.31,
+        smoothness: 0.15,
+    })
+    .build();
 
     console.log(grid)
 
@@ -256,7 +265,11 @@ function generateTerrain(game: Game<GameState>) {
                     renderBody: {
                         shape: body,
                         color: {
-                            fill: block === 'cave' ? 'black' : 'burlywood',
+                            // fill: `rgba(17, 255, 0, ${block})`
+                            // `rgb(255, 227, 179, ${block})`
+
+                            // `hsl(100,100%,${block * 100}%)`
+                            fill: block === 'cave' ? 'black' : '#573B0C',
                         }
 
                     }

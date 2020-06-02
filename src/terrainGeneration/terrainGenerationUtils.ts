@@ -1,4 +1,5 @@
 import SimplexNoise from 'simplex-noise';
+import Vector from '../../physics/Vector';
 
 interface TerrainGenerationConfig {
     width: number;
@@ -12,7 +13,7 @@ interface TerrainGenerationConfig {
 export default {
     generateCellularGrid,
     generateSimplexGrid,
-    generateCaveSystem,
+    terrainBuilder,
 };
 
 // TODO: Floodfill to count caves https://en.wikipedia.org/wiki/Flood_fill
@@ -90,7 +91,7 @@ interface SimplexConfig<CellValue> {
 }
 
 function generateSimplexGrid<CellValue = number>(config: SimplexConfig<CellValue>): CellValue[][] {
-    const simplexNoise  = new SimplexNoise(config.seed || undefined);
+    const noise = createNoiseFn({ seed: config.seed });
     const fillCellValue = config.fillCellValue || (v => v);
 
     const map = [];
@@ -102,15 +103,6 @@ function generateSimplexGrid<CellValue = number>(config: SimplexConfig<CellValue
         }
     }
     return map;
-
-    function noise(x, y) {
-        // Scale range to 0-1 for ease of consumption
-        return scale(
-            simplexNoise.noise2D(x, y),
-            -1, 1, // Input range
-             0, 1 // Output range
-        );
-    }
 }
 
 
@@ -137,87 +129,169 @@ function generateSimplexGrid<CellValue = number>(config: SimplexConfig<CellValue
 //          - Note: can have x,y to encourage upward or downward curves
 
 
-function generateCaveSystem(config) {
-    const {
-        width,
-        height,
-        cavePercentage = 0.3,
-    } = config;
-
-    const grid = generateSimplexGrid<any>({
-                    width,
-                    height,
-                });
-
-    digCave(0, 0, { digThreshold: 0.21 });
-
-    return grid;
-
-
-    interface DigCaveConfig {
-        // Note: Can have optional x/y threshold to encourage deeper/wider holes
-        digThreshold: number; // 0<=n<=1 - Threshold for digging next block. Neighbor must be within this amount to be dug
-
-        // DigDecay - 0<=n<=1 - Decrease threshold for digging next block by this amount over time. Sets upper bound on total cave size
-        // AngleAdjustment - 0<=n<=1 - Encourage how curvy tunnel is. Create vector of average direction of tunnel (how?), adjust DigThreshold by this amount
-        //    Note: can have x,y to encourage upward or downward curves
-    }
-
-
-    // TODO: Only recurses to a cell once.
-    // This could affect things if recursion moves from vertical rather than horizontal
-    // How should we handle this?
-
-    // TODO: logic for retrying failed caves (one cell etc)
-    // TODO: Pick multiple starting cells for one cave system?
-    function digCave(x, y, config: DigCaveConfig) {
-        const seenCells = new Set();
-
-        const originalNoiseValue = grid[x][y];
-
-        digCaveHelper(x, y, null);
-        function digCaveHelper(x, y, prevNoiseValue) {
-            const cellId = `${x},${y}`;
-            const isXOutOfBounds = x < 0 || x >= grid.length;
-            const isYOutOfBounds = y < 0 || y >= grid[0].length;
-            if (isXOutOfBounds || isYOutOfBounds || seenCells.has(cellId)) {
-                return;
-            }
-
-            if (prevNoiseValue != null) {
-                console.log(grid[x][y] - prevNoiseValue)
-            }
-
-            // TODO: May also always use starting point value rather then latest cell.Test it out
-            const meetsDigThreshold = prevNoiseValue == null || (Math.abs(grid[x][y] - prevNoiseValue) <= config.digThreshold);
-            if (!meetsDigThreshold) {
-                return;
-            }
-
-
-            seenCells.add(cellId);
-
-
-            // Dig each neighbor
-            const neighborCoords = [
-                [x, y - 1],
-                [x - 1, y],
-                [x, y + 1],
-                [x + 1, y],
-            ];
-            for (const [neighborX, neighborY] of neighborCoords) {
-                digCaveHelper(
-                    neighborX,
-                    neighborY,
-                    grid[x][y],
-                );
-            }
-
-            grid[x][y] = 'cave';
-        }
-    }
+interface TerrainBuilderConfig {
+    width: number;
+    height: number;
 }
 
+
+function terrainBuilder<TerrainType>(config: TerrainBuilderConfig) {
+    const { width, height } = config;
+
+    type LayerFn = (x: number, y: number) => string | null;
+    const layerFns: LayerFn[] = [];
+
+
+    const terrainBuilder = {
+        dirt,
+        cave,
+        build,
+    };
+
+    return terrainBuilder;
+    interface LayerConfig {
+        seed?: string;
+        threshold: number; // 0<=n<=1 - Defines which data meets the layer criteria
+        smoothness: number; // 0<=n<=Infinity - Lower numbers increase smoothness, higher numbers increase volatility
+    }
+
+    function dirt(config: LayerConfig) {
+        const dirtNoiseFn = createNoiseFn(config);
+
+        layerFns.push((x, y) => {
+            const isDirt = dirtNoiseFn(x, y) < config.threshold;
+            return isDirt ? 'dirt' : null;
+        });
+
+        return terrainBuilder;
+    }
+
+    function cave(config: LayerConfig) {
+        const caveNoiseFn = createNoiseFn(config);
+
+        layerFns.push((x, y) => {
+            const isCave = caveNoiseFn(x, y) < config.threshold;
+            return isCave ? 'cave' : null;
+        });
+
+        return terrainBuilder;
+    }
+
+    function build() {
+        const grid = [];
+
+        for (let x = 0; x < config.width; x++) {
+            grid.push([]);
+            for(let y = 0; y < config.height; y++) {
+                // Handle layers in reverse order because last layer takes precedence
+                for (const layerFn of layerFns.slice().reverse()) {
+                    const cellValue = layerFn(x, y);
+                    if (cellValue) {
+                        grid[x][y] = cellValue;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return grid;
+    }
+
+}
+
+
+// TODO: Support "global caves"
+interface DigCaveConfig {
+    // Note: Can have optional x/y threshold to encourage deeper/wider holes
+    digThreshold: number; // 0<=n<=1 - Threshold for digging next block. Neighbor must be within this amount to be dug
+
+    // Where to start digging
+    // DigDecay - 0<=n<=1 - Decrease threshold for digging next block by this amount over time. Sets upper bound on total cave size
+    // AngleAdjustment - 0<=n<=1 - Encourage how curvy tunnel is. Create vector of average direction of tunnel (how?), adjust DigThreshold by this amount
+    //    Note: can have x,y to encourage upward or downward curves
+}
+
+// TODO: Add low pass/high pass filter
+// function digCave(grid, config: DigCaveConfig) {
+//     for (let x = 0; x < grid.length; x++) {
+//         for (let y = 0; y < grid[0].length; y++) {
+//             if (grid[x][y] <= config.digThreshold) {
+//                 grid[x][y] = 'cave';
+//             }
+//         }
+//     }
+// }
+
+// TODO: Only recurses to a cell once.
+// This could affect things if recursion moves from vertical rather than horizontal
+// How should we handle this?
+
+// TODO: logic for retrying failed caves (one cell etc)
+// TODO: Pick multiple starting cells for one cave system?
+
+// TODO: can we take first derivative, get rate of change, and identify good starting points for caves?
+
+// TODO: low pass, high pass filter? Don't want lots of mini one cell caves
+interface DigCaveAtPointConfig {
+    // Note: Can have optional x/y threshold to encourage deeper/wider holes
+    digThreshold: number; // 0<=n<=1 - Threshold for digging next block. Neighbor must be within this amount to be dug
+
+    // Where to start digging
+    caveOrigin: Vector;
+    // DigDecay - 0<=n<=1 - Decrease threshold for digging next block by this amount over time. Sets upper bound on total cave size
+    // AngleAdjustment - 0<=n<=1 - Encourage how curvy tunnel is. Create vector of average direction of tunnel (how?), adjust DigThreshold by this amount
+    //    Note: can have x,y to encourage upward or downward curves
+}
+function digCaveAtPoint(grid, config: DigCaveAtPointConfig) {
+    const { x, y } = config.caveOrigin;
+    const seenCells = new Set();
+
+
+    const originalNoiseValue = grid[x][y];
+
+    digCaveHelper(x, y, null);
+    function digCaveHelper(x, y, prevNoiseValue) {
+        const cellId = `${x},${y}`;
+        const isXOutOfBounds = x < 0 || x >= grid.length;
+        const isYOutOfBounds = y < 0 || y >= grid[0].length;
+        if (isXOutOfBounds || isYOutOfBounds || seenCells.has(cellId)) {
+            return;
+        }
+
+        // prevNoiseValue = originalNoiseValue;
+
+        // if (prevNoiseValue != null) {
+        //     console.log(grid[x][y] - prevNoiseValue)
+        // }
+
+        // TODO: May also always use starting point value rather then latest cell.Test it out
+        const meetsDigThreshold = prevNoiseValue == null || (Math.abs(grid[x][y] - prevNoiseValue) <= config.digThreshold);
+        if (!meetsDigThreshold) {
+            return;
+        }
+
+
+        seenCells.add(cellId);
+
+
+        // Dig each neighbor
+        const neighborCoords = [
+            [x, y - 1],
+            [x - 1, y],
+            [x, y + 1],
+            [x + 1, y],
+        ];
+        for (const [neighborX, neighborY] of neighborCoords) {
+            digCaveHelper(
+                neighborX,
+                neighborY,
+                grid[x][y],
+            );
+        }
+
+        grid[x][y] = 'cave';
+    }
+}
 
 
 function scale(num, inMin, inMax, outMin, outMax) {
@@ -269,3 +343,37 @@ function isInBounds(valuesArray, indexArray) {
 // https://gamedev.stackexchange.com/questions/33590/how-to-generate-caves-that-resemble-those-of-minecraft
 // http://libnoise.sourceforge.net/examples/worms/index.html
 // https://www.reddit.com/r/proceduralgeneration/comments/da8gms/generate_structures_in_chunkbased_terrain/
+// https://www.reddit.com/r/proceduralgeneration/comments/2zjp51/chunk_based_world_generation/
+// https://github.com/KdotJPG/OpenSimplex2
+// https://forum.unity.com/threads/procedural-world-generation-tips-advice-for-loading-a-voxel-type-level.318105/
+// https://github.com/Team-RTG/Realistic-Terrain-Generation/tree/1.12.2-dev/src/main/java/rtg/world/biome/realistic
+
+// https://www.redblobgames.com/maps/terrain-from-noise/
+// https://stackoverflow.com/questions/13623663/i-cannot-generate-smooth-simplex-noise-in-javascript
+
+// Chunk Engine
+// Chunks (2D array)
+//  - Grid within chunks 2D array
+//  - Chunks saved on disk. Always load chunks near to user
+
+
+interface CreateNoiseConfig {
+    seed?: string;
+    smoothness?: number; // Define how smooth the noise output is
+    // TODO: Should this be handled externally?
+}
+function createNoiseFn(config?: CreateNoiseConfig) {
+    const { seed = undefined, smoothness = 1 } = config;
+    const simplexNoise  = new SimplexNoise(seed || undefined);
+
+    return noise;
+
+    function noise(x, y) {
+        // Scale range to 0-1 for ease of consumption
+        return scale(
+            simplexNoise.noise2D(x * smoothness, y * smoothness),
+            -1, 1, // Input range
+             0, 1 // Output range
+        );
+    }
+}
