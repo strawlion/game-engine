@@ -7,7 +7,8 @@ module.exports = {
     entry: {
         gameEngine: './src/index.ts',
         spaceInvaders: './examples/space-invaders/spaceInvaders.ts',
-        spaceMiner: './examples/space-miner/spaceMiner.ts'
+        spaceMiner: './examples/space-miner/spaceMiner.ts',
+        terrainGenerator: './examples/terrain-generator/terrainGenerator.ts'
     },
     module: {
         rules: [
@@ -22,6 +23,7 @@ module.exports = {
         new CopyPlugin([
             { from: './examples/space-invaders', to: '.' },
             { from: './examples/space-miner', to: '.' },
+            { from: './examples/terrain-generator', to: '.' },
         ]),
     ],
     resolve: {

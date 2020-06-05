@@ -350,6 +350,7 @@ function isInBounds(valuesArray, indexArray) {
 
 // https://www.redblobgames.com/maps/terrain-from-noise/
 // https://stackoverflow.com/questions/13623663/i-cannot-generate-smooth-simplex-noise-in-javascript
+// https://terraria.fandom.com/wiki/World_Size#:~:text=Upon%20creating%20a%20new%20world,370%20blocks%20above%20underground%20level.
 
 // Chunk Engine
 // Chunks (2D array)

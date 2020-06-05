@@ -185,7 +185,7 @@ interface GameConfig<GameState> {
     height: number;
     container: HTMLElement,
     targetGameLogicFrameRate?: number;
-    initialize: (game: Game<GameState>) => (void | Promise<void>);
+    initialize?: (game: Game<GameState>) => (void | Promise<void>);
     state: {
         getWorld: (state: GameState) => GameObject[];
         events: Record<string, (state: GameState, data) => void>;
