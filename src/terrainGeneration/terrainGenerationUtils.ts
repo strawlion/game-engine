@@ -370,9 +370,11 @@ function createNoiseFn(config?: CreateNoiseConfig) {
     return noise;
 
     function noise(x, y) {
+        const smoothnessFactor = smoothness * 0.5; // 0.5 to make 0 to 1 encompass mostly usable range
         // Scale range to 0-1 for ease of consumption
+
         return scale(
-            simplexNoise.noise2D(x * smoothness, y * smoothness),
+            simplexNoise.noise2D(x * smoothnessFactor, y * smoothnessFactor),
             -1, 1, // Input range
              0, 1 // Output range
         );

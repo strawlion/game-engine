@@ -13,15 +13,42 @@ setupGame();
 
 async function setupGame() {
 
+    let width = 20;
+    let height = 20;
+    let smoothness = 0.5;
+    let threshold = 0.5;
     document.body.append(
         createSlider({
-            name: 'Step Size',
+            name: 'Width',
+            min: 1,
+            max: 100,
+            step: 1,
+            defaultValue: width,
+            onChange(value) {
+                width = value;
+                updateTerrainPreview(game);
+            }
+        }),
+        createSlider({
+            name: 'Height',
+            min: 1,
+            max: 100,
+            step: 1,
+            defaultValue: width,
+            onChange(value) {
+                height = value;
+                updateTerrainPreview(game);
+            }
+        }),
+        createSlider({
+            name: 'Smoothness',
             min: 0.01,
             max: 1,
             step: 0.01,
-            defaultValue: 0.01,
+            defaultValue: smoothness,
             onChange(value) {
-                console.log(value);
+                smoothness = value;
+                updateTerrainPreview(game);
             }
         }),
         createSlider({
@@ -29,9 +56,10 @@ async function setupGame() {
             min: 0.01,
             max: 1,
             step: 0.01,
-            defaultValue: 0.5,
+            defaultValue: threshold,
             onChange(value) {
-                console.log(value);
+                threshold = value;
+                updateTerrainPreview(game);
             }
         }),
         createElement('div', {
@@ -55,8 +83,8 @@ async function setupGame() {
                 gameInitialized(state, game: Game<GameState>) {
                     Object.assign(state, {
                         game,
-                        terrain: generateTerrain(game),
                     });
+                    updateTerrainPreview(game);
                 },
             },
 
@@ -65,20 +93,37 @@ async function setupGame() {
 
 
     game.start();
+
+    function updateTerrainPreview(game) {
+        game.store.state.terrain = generateTerrain(game, {
+            width,
+            height,
+            threshold,
+            smoothness,
+        })
+    }
 }
-function generateTerrain(game: Game<GameState>) {
+
+
+interface GenerateTerrainOptions {
+    width: number;
+    height: number;
+    threshold: number;
+    smoothness: number;
+}
+function generateTerrain(game: Game<GameState>, options: GenerateTerrainOptions) {
     const { terrainBuilder } = terrainGenerationUtils;
     const grid = terrainBuilder<string>({
-        width: 20,
-        height: 20,
+        width: options.width,
+        height: options.height,
     })
     .dirt({
         threshold: 1,
         smoothness: 1,
     })
     .cave({
-        threshold: 0.31,
-        smoothness: 0.15,
+        threshold: options.threshold,
+        smoothness: options.smoothness,
     })
     .build();
 
@@ -152,7 +197,7 @@ function createSlider(options: SliderOptions) {
                         class: 'slider',
                     },
                     events: {
-                        change(event) {
+                        input(event) {
                             // @ts-ignore
                             const newValue = event.target.value;
 
