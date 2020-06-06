@@ -136,43 +136,39 @@ interface TerrainBuilderConfig {
 
 
 function terrainBuilder<TerrainType>(config: TerrainBuilderConfig) {
-    const { width, height } = config;
-
     type LayerFn = (x: number, y: number) => string | null;
     const layerFns: LayerFn[] = [];
 
 
     const terrainBuilder = {
-        dirt,
-        cave,
+        layer,
+        layers,
         build,
     };
 
     return terrainBuilder;
     interface LayerConfig {
+        id: string;
         seed?: string;
         threshold: number; // 0<=n<=1 - Defines which data meets the layer criteria
         smoothness: number; // 0<=n<=Infinity - Lower numbers increase smoothness, higher numbers increase volatility
     }
 
-    function dirt(config: LayerConfig) {
-        const dirtNoiseFn = createNoiseFn(config);
+    function layer(config: LayerConfig) {
+        const noiseFn = createNoiseFn(config);
 
         layerFns.push((x, y) => {
-            const isDirt = dirtNoiseFn(x, y) < config.threshold;
-            return isDirt ? 'dirt' : null;
+            const isWithinThreshold = noiseFn(x, y) < config.threshold;
+            return isWithinThreshold ? config.id : null;
         });
 
         return terrainBuilder;
     }
 
-    function cave(config: LayerConfig) {
-        const caveNoiseFn = createNoiseFn(config);
-
-        layerFns.push((x, y) => {
-            const isCave = caveNoiseFn(x, y) < config.threshold;
-            return isCave ? 'cave' : null;
-        });
+    function layers(configs: LayerConfig[]) {
+        for (const layerConfig of configs) {
+            layer(layerConfig);
+        }
 
         return terrainBuilder;
     }
@@ -183,6 +179,10 @@ function terrainBuilder<TerrainType>(config: TerrainBuilderConfig) {
         for (let x = 0; x < config.width; x++) {
             grid.push([]);
             for(let y = 0; y < config.height; y++) {
+
+                // Initialize cell to undefined
+                grid[x][y] = undefined;
+
                 // Handle layers in reverse order because last layer takes precedence
                 for (const layerFn of layerFns.slice().reverse()) {
                     const cellValue = layerFn(x, y);

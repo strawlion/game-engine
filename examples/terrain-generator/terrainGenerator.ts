@@ -12,20 +12,36 @@ import physics from '../../physics';
 setupGame();
 
 async function setupGame() {
+    const Color = {
+        dirtBrown: '#573B0C',
+        water: '#063fb2',
+    };
 
-    let width = 20;
-    let height = 20;
-    let smoothness = 0.5;
-    let threshold = 0.5;
+    const world = {
+        width: 50,
+        height: 50,
+        noMatchingLayerColor: 'black',
+    };
+
+    const layers = [
+        createLayer({
+            id: 'dirt',
+            color: Color.dirtBrown,
+            onChange(layerConfig) {
+                updateTerrainPreview(game);
+            }
+        })
+    ];
+
     document.body.append(
         createSlider({
             name: 'Width',
             min: 1,
             max: 100,
             step: 1,
-            defaultValue: width,
+            defaultValue: world.width,
             onChange(value) {
-                width = value;
+                world.width = value;
                 updateTerrainPreview(game);
             }
         }),
@@ -34,42 +50,18 @@ async function setupGame() {
             min: 1,
             max: 100,
             step: 1,
-            defaultValue: width,
+            defaultValue: world.height,
             onChange(value) {
-                height = value;
+                world.height = value;
                 updateTerrainPreview(game);
             }
         }),
-        createSlider({
-            name: 'Smoothness',
-            min: 0.01,
-            max: 1,
-            step: 0.01,
-            defaultValue: smoothness,
-            onChange(value) {
-                smoothness = value;
-                updateTerrainPreview(game);
-            }
-        }),
-        createSlider({
-            name: 'Threshold',
-            min: 0.01,
-            max: 1,
-            step: 0.01,
-            defaultValue: threshold,
-            onChange(value) {
-                threshold = value;
-                updateTerrainPreview(game);
-            }
-        }),
-        createElement('div', {
-            attrs: {
-                id: 'terrain-preview'
-            }
-        })
-    )
+        ...layers.map(layer => layer.element),
+        createElement('div', { attrs: { id: 'terrain-preview' } }),
+    );
 
     const game = await createGame<GameState>({
+        targetGameLogicFrameRate: 10,
         width: 800,
         height: 600,
         container: document.querySelector('#terrain-preview'),
@@ -96,11 +88,11 @@ async function setupGame() {
 
     function updateTerrainPreview(game) {
         game.store.state.terrain = generateTerrain(game, {
-            width,
-            height,
-            threshold,
-            smoothness,
-        })
+            width: world.width,
+            height: world.height,
+            layers: layers.map(layer => layer.config),
+            noMatchingLayerColor: world.noMatchingLayerColor,
+        });
     }
 }
 
@@ -108,8 +100,8 @@ async function setupGame() {
 interface GenerateTerrainOptions {
     width: number;
     height: number;
-    threshold: number;
-    smoothness: number;
+    layers: LayerConfig[];
+    noMatchingLayerColor: string;
 }
 function generateTerrain(game: Game<GameState>, options: GenerateTerrainOptions) {
     const { terrainBuilder } = terrainGenerationUtils;
@@ -117,17 +109,13 @@ function generateTerrain(game: Game<GameState>, options: GenerateTerrainOptions)
         width: options.width,
         height: options.height,
     })
-    .dirt({
-        threshold: 1,
-        smoothness: 1,
-    })
-    .cave({
-        threshold: options.threshold,
-        smoothness: options.smoothness,
-    })
-    .build();
+    .layers(options.layers)
+    .build()
 
-    console.log(grid)
+    const layerToColor = options.layers.reduce((layerToColor, layer) => {
+        layerToColor[layer.id] = layer.color;
+        return layerToColor;
+    }, {});
 
     // Assuming terrain fills viewport
     const terrainOriginY = 100;
@@ -145,7 +133,8 @@ function generateTerrain(game: Game<GameState>, options: GenerateTerrainOptions)
                 y: terrainOriginY + (y * blockHeight),
                 width: blockWidth,
                 height: blockHeight,
-            })
+            });
+
             terrainBlocks.push(
                 game.createGameObject({
                     type: block,
@@ -153,11 +142,7 @@ function generateTerrain(game: Game<GameState>, options: GenerateTerrainOptions)
                     renderBody: {
                         shape: body,
                         color: {
-                            // fill: `rgba(17, 255, 0, ${block})`
-                            // `rgb(255, 227, 179, ${block})`
-
-                            // `hsl(100,100%,${block * 100}%)`
-                            fill: block === 'cave' ? 'black' : '#573B0C',
+                            fill: layerToColor[block] || options.noMatchingLayerColor,
                         }
 
                     }
@@ -172,6 +157,61 @@ function generateTerrain(game: Game<GameState>, options: GenerateTerrainOptions)
 interface GameState {
     game?: Game<GameState>;
     terrain: GameObject[];
+}
+
+function createTextInput(options: { name: string, defaultValue: string; onChange: (value: string) => void }) {
+
+    return createElement('div', {
+        attrs: {
+            class: 'inputcontainer',
+        },
+        children: [
+            createElement('label', {
+                children: [options.name],
+            }),
+            createElement('input', {
+                    attrs: {
+                        type: 'text',
+                        value: options.defaultValue,
+                    },
+                    events: {
+                        input(event) {
+                            // @ts-ignore
+                            options.onChange(event.target.value);
+                        }
+                    }
+                }
+            )
+        ]
+    });
+}
+
+
+function createColorPicker(options: { defaultValue: string; onChange: (value: string) => void }) {
+
+    return createElement('div', {
+        attrs: {
+            class: 'colorpickercontainer',
+        },
+        children: [
+            createElement('label', {
+                children: ['Color'],
+            }),
+            createElement('input', {
+                    attrs: {
+                        type: 'color',
+                        value: String(options.defaultValue),
+                    },
+                    events: {
+                        input(event) {
+                            // @ts-ignore
+                            options.onChange(event.target.value);
+                        }
+                    }
+                }
+            )
+        ]
+    });
 }
 
 function createSlider(options: SliderOptions) {
@@ -249,4 +289,93 @@ interface SliderOptions {
     step: number;
     defaultValue: number;
     onChange: (newValue: number) => void;
+}
+
+function createRandomSeed() {
+    const characters = 'abcdefghijklmnopqrstuvwxyz';
+    let seed = '';
+    for (let i = 0; i < 5; i++) {
+        seed += characters[Math.floor(Math.random() * characters.length)];
+    }
+    return seed;
+}
+
+function createRandomHex() {
+    return '#'+Math.floor(Math.random()*16777215).toString(16);
+}
+
+
+interface LayerConfig {
+    id: string;
+    seed: string;
+    color: string;
+    smoothness: number;
+    threshold: number;
+}
+
+
+interface CreateLayerConfig {
+    id: string;
+    color?: string;
+    onChange: (layerConfig: LayerConfig) => void;
+}
+
+function createLayer(options: CreateLayerConfig) {
+
+    const layerConfig: LayerConfig = {
+        id: options.id,
+        seed: createRandomSeed(),
+        color: options.color || createRandomHex(),
+        smoothness: 0.32,
+        threshold: 0.38,
+    };
+
+    return {
+        config: layerConfig,
+        element: createElement('div', {
+            attrs: {
+                class: 'layer',
+            },
+            children: [
+                createTextInput({
+                    name: 'Seed',
+                    defaultValue: layerConfig.seed,
+                    onChange(value) {
+                        layerConfig.seed = value || undefined;
+                        options.onChange(layerConfig);
+                    }
+                }),
+                createColorPicker({
+                    defaultValue: options.color,
+                    onChange(value) {
+                        options.color = value;
+                        options.onChange(layerConfig);
+                    }
+                }),
+                createSlider({
+                    name: 'Smoothness',
+                    min: 0.01,
+                    max: 1,
+                    step: 0.01,
+                    defaultValue: layerConfig.smoothness,
+                    onChange(value) {
+                        layerConfig.smoothness = value;
+                        options.onChange(layerConfig);
+                    }
+                }),
+                createSlider({
+                    name: 'Threshold',
+                    min: 0.01,
+                    max: 1,
+                    step: 0.01,
+                    defaultValue: layerConfig.threshold,
+                    onChange(value) {
+                        layerConfig.threshold = value;
+                        options.onChange(layerConfig);
+                    }
+                }),
+            ]
+        })
+    };
+
 }
