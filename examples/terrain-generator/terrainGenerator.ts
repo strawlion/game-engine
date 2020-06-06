@@ -26,6 +26,7 @@ async function setupGame() {
     const layers = [
         createLayer({
             id: 'dirt',
+            seed: 'seed',
             color: Color.dirtBrown,
             onChange(layerConfig) {
                 updateTerrainPreview(game);
@@ -311,11 +312,13 @@ interface LayerConfig {
     color: string;
     smoothness: number;
     threshold: number;
+    scalingFactor: number;
 }
 
 
 interface CreateLayerConfig {
     id: string;
+    seed?: string;
     color?: string;
     onChange: (layerConfig: LayerConfig) => void;
 }
@@ -324,10 +327,11 @@ function createLayer(options: CreateLayerConfig) {
 
     const layerConfig: LayerConfig = {
         id: options.id,
-        seed: createRandomSeed(),
+        seed: options.seed || createRandomSeed(),
         color: options.color || createRandomHex(),
         smoothness: 0.32,
         threshold: 0.38,
+        scalingFactor: 1,
     };
 
     return {
@@ -371,6 +375,17 @@ function createLayer(options: CreateLayerConfig) {
                     defaultValue: layerConfig.threshold,
                     onChange(value) {
                         layerConfig.threshold = value;
+                        options.onChange(layerConfig);
+                    }
+                }),
+                createSlider({
+                    name: 'ScalingFactor',
+                    min: 0.01,
+                    max: 4,
+                    step: 0.01,
+                    defaultValue: layerConfig.scalingFactor,
+                    onChange(value) {
+                        layerConfig.scalingFactor = value;
                         options.onChange(layerConfig);
                     }
                 }),

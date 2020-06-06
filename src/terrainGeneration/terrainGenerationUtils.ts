@@ -152,6 +152,7 @@ function terrainBuilder<TerrainType>(config: TerrainBuilderConfig) {
         seed?: string;
         threshold: number; // 0<=n<=1 - Defines which data meets the layer criteria
         smoothness: number; // 0<=n<=Infinity - Lower numbers increase smoothness, higher numbers increase volatility
+        scalingFactor: number; // TODO:
     }
 
     function layer(config: LayerConfig) {
@@ -362,21 +363,28 @@ interface CreateNoiseConfig {
     seed?: string;
     smoothness?: number; // Define how smooth the noise output is
     // TODO: Should this be handled externally?
+
+    // TODO: rename
+    scalingFactor?: number;
 }
 function createNoiseFn(config?: CreateNoiseConfig) {
-    const { seed = undefined, smoothness = 1 } = config;
+    const { seed = undefined, smoothness = 1, scalingFactor = 1 } = config;
     const simplexNoise  = new SimplexNoise(seed || undefined);
 
     return noise;
 
     function noise(x, y) {
-        const smoothnessFactor = smoothness * 0.5; // 0.5 to make 0 to 1 encompass mostly usable range
-        // Scale range to 0-1 for ease of consumption
+        // 0.5 to make 0 to 1 encompass mostly usable range
+        const smoothnessFactor = smoothness * 0.5;
 
+        // Scale range to 0-1 for ease of consumption
         return scale(
-            simplexNoise.noise2D(x * smoothnessFactor, y * smoothnessFactor),
+            simplexNoise.noise2D(
+                (x * smoothnessFactor),
+                (y * smoothnessFactor),
+            ),
             -1, 1, // Input range
              0, 1 // Output range
-        );
+        ) ** scalingFactor; // TODO: Does this actually do anything useful? Dense islands?
     }
 }
