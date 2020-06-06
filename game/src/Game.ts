@@ -1,5 +1,5 @@
-import Renderer from '../render';
-import Physics from '../physics';
+import Renderer from '../../render';
+import Physics from '../../physics';
 import { Store } from 'vuex';
 import GameObjectConfig from './GameObjectConfig';
 import GameObject from './GameObject';

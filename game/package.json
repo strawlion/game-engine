@@ -1,0 +1,40 @@
+{
+  "name": "game-engine",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "yarn clean && webpack",
+    "build.watch": "yarn clean && webpack --watch",
+    "test": "jest",
+    "example.server": "http-server ./dist",
+    "run.examples": "npm-run-all --parallel build.watch example.server"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vue/cli": "^4.3.1",
+    "pixi.js": "^5.2.3",
+    "rxjs": "^6.5.5",
+    "simplex-noise": "^2.4.0",
+    "vuex": "^3.4.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.6",
+    "@babel/preset-env": "^7.9.6",
+    "@babel/preset-typescript": "^7.9.0",
+    "@types/jest": "^25.2.2",
+    "babel-jest": "^26.0.1",
+    "copy-webpack-plugin": "^5.1.1",
+    "http-server": "^0.12.3",
+    "jest": "^26.0.1",
+    "lodash": "^4.17.15",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.2",
+    "ts-loader": "^7.0.2",
+    "typescript": "^3.8.3",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
+  }
+}

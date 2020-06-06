@@ -1,9 +1,9 @@
 import GameObject from './GameObject';
-import Body from '../physics/body/Body';
+import Body from '../../physics/body/Body';
 import KeyEventHandlers from './input/KeyEventHandler';
 import KeyEventId from './input/KeyEventId';
 import MouseEventHandlers from './input/MouseEventHandlers';
-import RenderBody from '../render/RenderBody';
+import RenderBody from '../../render/RenderBody';
 
 export default interface GameObjectConfig {
     type: string;

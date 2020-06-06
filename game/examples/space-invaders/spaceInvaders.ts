@@ -1,6 +1,6 @@
 import { createGame, Game, GameObject } from '../../src/index';
-import Physics from '../../physics';
-import v from '../../physics/vectorUtils';
+import Physics from '../../../physics';
+import v from '../../../physics/vectorUtils';
 
 
 setupGame();

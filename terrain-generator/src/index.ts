@@ -1,5 +1,9 @@
 import SimplexNoise from 'simplex-noise';
-import Vector from '../../physics/Vector';
+interface Vector {
+    x: number;
+    y: number;
+}
+
 
 interface TerrainGenerationConfig {
     width: number;
@@ -135,7 +139,15 @@ interface TerrainBuilderConfig {
 }
 
 
-function terrainBuilder<TerrainType>(config: TerrainBuilderConfig) {
+interface LayerConfig {
+    id: string;
+    seed?: string;
+    threshold: number; // 0<=n<=1 - Defines which data meets the layer criteria
+    smoothness: number; // 0<=n<=Infinity - Lower numbers increase smoothness, higher numbers increase volatility
+    scalingFactor?: number; // TODO:
+}
+
+function terrainBuilder(config: TerrainBuilderConfig) {
     type LayerFn = (x: number, y: number) => string | null;
     const layerFns: LayerFn[] = [];
 
@@ -147,13 +159,7 @@ function terrainBuilder<TerrainType>(config: TerrainBuilderConfig) {
     };
 
     return terrainBuilder;
-    interface LayerConfig {
-        id: string;
-        seed?: string;
-        threshold: number; // 0<=n<=1 - Defines which data meets the layer criteria
-        smoothness: number; // 0<=n<=Infinity - Lower numbers increase smoothness, higher numbers increase volatility
-        scalingFactor: number; // TODO:
-    }
+
 
     function layer(config: LayerConfig) {
         const noiseFn = createNoiseFn(config);
@@ -369,7 +375,7 @@ interface CreateNoiseConfig {
 }
 function createNoiseFn(config?: CreateNoiseConfig) {
     const { seed = undefined, smoothness = 1, scalingFactor = 1 } = config;
-    const simplexNoise  = new SimplexNoise(seed || undefined);
+    const simplexNoise = new SimplexNoise(seed || undefined);
 
     return noise;
 

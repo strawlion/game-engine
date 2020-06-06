@@ -1,5 +1,5 @@
-import Body from '../physics/body/Body';
-import RenderBody from '../render/RenderBody';
+import Body from '../../physics/body/Body';
+import RenderBody from '../../render/RenderBody';
 
 export default interface GameObject {
     // TODO: use instanceof instead?

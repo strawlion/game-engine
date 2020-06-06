@@ -1,11 +1,10 @@
-import Renderer from '../render';
-import Physics from '../physics';
+import Renderer from '../../render';
+import Physics from '../../physics';
 import GameObject from './GameObject';
-import { createStore } from '../stateManager/stateManager';
+import { createStore } from '../../stateManager/stateManager';
 import GameObjectConfig from './GameObjectConfig';
 import Game from './Game';
 import getInputManager from './input/createInputManager';
-import InputEventId from './input/KeyEventId';
 
 export default createGame;
 
