@@ -23,6 +23,7 @@
             <Layer
                 v-for="layer of layers"
                 :key="layer.id"
+                :id="layer.id"
                 :seed="layer.seed"
                 :onSeedChange="seed => layer.seed = seed"
 
@@ -34,7 +35,13 @@
 
                 :threshold="layer.threshold"
                 :onThresholdChange="threshold => layer.threshold = threshold"
+
+                :onRemoveLayerClicked="removeLayer"
             />
+            <button
+                class="add-layer-button"
+                @click="addLayer"
+            >Add Layer</button>
         </div>
         <div class="right-column">
             <TerrainPreview
@@ -89,6 +96,18 @@ export default {
                 layers: this.layers,
             });
         }
+    },
+    methods: {
+        addLayer() {
+            this.layers.push(
+                createLayer({
+                    id: createRandomSeed(),
+                }),
+            )
+        },
+        removeLayer(id) {
+            this.layers = this.layers.filter(layer => layer.id !== id);
+        }
     }
 };
 
@@ -118,7 +137,14 @@ function createRandomHex() {
 
 </script>
 
-<style scoped>
+<style>
+html, body, .app {
+    height: 100%;
+}
+body {
+    margin: 0;
+}
+
 .app {
     display: flex;
 }
@@ -138,8 +164,14 @@ function createRandomHex() {
 
 .left-column {
     min-width: 270px;
+    overflow: auto;
 }
 .right-column {
     margin-left: 1px;
+}
+
+.add-layer-button {
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 </style>

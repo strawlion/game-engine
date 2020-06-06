@@ -1,31 +1,39 @@
 <template>
     <div class="layer-config">
-        <div class="layer-header">Layer {{ id }}</div>
-        <TextInput
-            name="Seed"
-            :value="seed"
-            :onChange="seed => onSeedChange(seed)"
-        />
-        <ColorPicker
-            :value="color"
-            :onChange="color => onColorChange(color)"
-        />
-        <Slider
-            name="Smoothness"
-            :min="0.01"
-            :max="1"
-            :step="0.01"
-            :value="smoothness"
-            :onChange="smoothness => onSmoothnessChange(smoothness)"
-        />
-        <Slider
-            name="Threshold"
-            :min="0.01"
-            :max="1"
-            :step="0.01"
-            :value="threshold"
-            :onChange="threshold => onThresholdChange(threshold)"
-        />
+        <div class="layer-header">
+            <span>Layer {{ id }}</span>
+            <button
+                class="remove-layer-button"
+                @click="removeLayer"
+            >Remove</button>
+        </div>
+        <div class="layer-controls">
+            <TextInput
+                name="Seed"
+                :value="seed"
+                :onChange="seed => onSeedChange(seed)"
+            />
+            <ColorPicker
+                :value="color"
+                :onChange="color => onColorChange(color)"
+            />
+            <Slider
+                name="Smoothness"
+                :min="0.01"
+                :max="1"
+                :step="0.01"
+                :value="smoothness"
+                :onChange="smoothness => onSmoothnessChange(smoothness)"
+            />
+            <Slider
+                name="Threshold"
+                :min="0.01"
+                :max="1"
+                :step="0.01"
+                :value="threshold"
+                :onChange="threshold => onThresholdChange(threshold)"
+            />
+        </div>
     </div>
 </template>
 
@@ -54,6 +62,8 @@ export default {
 
         threshold: Number,
         onThresholdChange: Function,
+
+        onRemoveLayerClicked: Function,
     },
     data() {
         return {
@@ -67,17 +77,30 @@ export default {
             }
         }
     },
+    methods: {
+        removeLayer() {
+            this.onRemoveLayerClicked(this.id);
+        }
+    }
 }
 </script>
 
 <style scoped>
-    .layer-header {
-        font-weight: bold;
-    }
+.layer-header {
+    font-weight: bold;
+}
 
-    .layer-config {
-        max-width: 250px;
-        padding: 10px;
-        border: 1px solid gray;
-    }
+.layer-config {
+    max-width: 250px;
+    padding: 10px;
+    border: 1px solid gray;
+}
+
+.layer-controls {
+    margin-top: 10px;
+}
+
+.remove-layer-button {
+    float: right;
+}
 </style>
