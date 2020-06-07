@@ -142,9 +142,8 @@ interface TerrainBuilderConfig {
 interface LayerConfig {
     id: string;
     seed?: string;
-    threshold: number; // 0<=n<=1 - Defines which data meets the layer criteria
+    threshold: (noise: number, x: number, y: number) => boolean; // 0<=n<=1 - Defines which data meets the layer criteria
     smoothness: number; // 0<=n<=Infinity - Lower numbers increase smoothness, higher numbers increase volatility
-    scalingFactor?: number; // TODO:
 }
 
 function terrainBuilder(config: TerrainBuilderConfig) {
@@ -165,7 +164,7 @@ function terrainBuilder(config: TerrainBuilderConfig) {
         const noiseFn = createNoiseFn(config);
 
         layerFns.push((x, y) => {
-            const isWithinThreshold = noiseFn(x, y) < config.threshold;
+            const isWithinThreshold = config.threshold(noiseFn(x, y), x, y);
             return isWithinThreshold ? config.id : null;
         });
 
@@ -369,12 +368,9 @@ interface CreateNoiseConfig {
     seed?: string;
     smoothness?: number; // Define how smooth the noise output is
     // TODO: Should this be handled externally?
-
-    // TODO: rename
-    scalingFactor?: number;
 }
 function createNoiseFn(config?: CreateNoiseConfig) {
-    const { seed = undefined, smoothness = 1, scalingFactor = 1 } = config;
+    const { seed, smoothness = 1 } = config;
     const simplexNoise = new SimplexNoise(seed || undefined);
 
     return noise;
@@ -391,6 +387,6 @@ function createNoiseFn(config?: CreateNoiseConfig) {
             ),
             -1, 1, // Input range
              0, 1 // Output range
-        ) ** scalingFactor; // TODO: Does this actually do anything useful? Dense islands?
+        );
     }
 }

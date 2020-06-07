@@ -32,9 +32,4 @@ export default {
 </script>
 
 <style scoped>
-    .slider-container {
-        /* display: flex; */
-        /* max-width: 230px; */
-        /* justify-content: space-evenly; */
-    }
 </style>

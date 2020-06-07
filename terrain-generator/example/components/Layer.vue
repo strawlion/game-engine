@@ -73,7 +73,6 @@ export default {
                 color: this.color || createRandomHex(),
                 smoothness: this.smoothness,
                 threshold: this.threshold,
-                scalingFactor: 1,
             }
         }
     },

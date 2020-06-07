@@ -33,8 +33,8 @@
                 :smoothness="layer.smoothness"
                 :onSmoothnessChange="smoothness => layer.smoothness = smoothness"
 
-                :threshold="layer.threshold"
-                :onThresholdChange="threshold => layer.threshold = threshold"
+                :threshold="layer.thresholdValue"
+                :onThresholdChange="threshold => layer.thresholdValue = threshold"
 
                 :onRemoveLayerClicked="removeLayer"
             />
@@ -57,7 +57,12 @@
 import Slider from './Slider';
 import Layer from './Layer';
 import TerrainPreview from './TerrainPreview';
-import generateTerrain from './generateTerrain';
+import utils from './utils';
+
+const {
+    generateTerrain,
+    generateFractalTree,
+} = utils;
 
 const Color = {
     dirtBrown: '#573B0C',
@@ -71,6 +76,34 @@ export default {
         TerrainPreview,
     },
     data() {
+        const self = this;
+
+        const originTestLayer = createLayer({
+            id: 'originTest',
+            color: Color.water,
+            // Example of having values radiate from an origin
+            threshold(noise, x, y) {
+                const { width, height } = self.gridConfig;
+                const originPoint = {
+                    x: 0,
+                    y: 0,
+                };
+
+                const distanceFromOrigin = Math.sqrt((originPoint.x - x) ** 2 + (originPoint.y - y) ** 2);
+                const maxWorldDistance = Math.sqrt(width ** 2 + height ** 2);
+                const percOfMaxDistance = distanceFromOrigin / maxWorldDistance;
+                const pointCloseness = 1 - percOfMaxDistance;
+
+                // Creates more filled in around origin (why?)
+                // Mostly Guarantees points around origin are included
+                // return (noise * percOfMaxDistance) <= originTestLayer.thresholdValue;
+
+                // Creates more sparse around origin, but still more closer
+                // Only taking away
+                return noise <= (originTestLayer.thresholdValue * pointCloseness);
+            }
+        });
+
         return {
             renderConfig: {
                 width: 600,
@@ -85,7 +118,10 @@ export default {
                 createLayer({
                     id: 'dirt',
                     color: Color.dirtBrown,
-                })
+                }),
+
+                // For testing,
+                originTestLayer,
             ]
         }
     },
@@ -112,14 +148,15 @@ export default {
 };
 
 function createLayer(options) {
-    return {
+    const layer = {
         id: options.id,
         seed: options.seed || createRandomSeed(),
         color: options.color || createRandomHex(),
         smoothness: 0.32,
-        threshold: 0.38,
-        scalingFactor: 1,
+        thresholdValue: 0.38,
+        threshold: options.threshold || (noise => noise <= layer.thresholdValue),
     };
+    return layer;
 }
 
 function createRandomSeed() {
