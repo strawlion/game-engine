@@ -1,8 +1,6 @@
 import SimplexNoise from 'simplex-noise';
-interface Vector {
-    x: number;
-    y: number;
-}
+import Vector from './Vector';
+import LayerConfig from './LayerConfig';
 
 
 interface TerrainGenerationConfig {
@@ -16,7 +14,6 @@ interface TerrainGenerationConfig {
 
 export default {
     generateCellularGrid,
-    generateSimplexGrid,
     terrainBuilder,
 };
 
@@ -87,29 +84,6 @@ function generateCellularGrid(config: TerrainGenerationConfig) {
 }
 
 
-interface SimplexConfig<CellValue> {
-    width: number;
-    height: number;
-    seed?: string;
-    fillCellValue?: (noiseValue: number) => CellValue;
-}
-
-function generateSimplexGrid<CellValue = number>(config: SimplexConfig<CellValue>): CellValue[][] {
-    const noise = createNoiseFn({ seed: config.seed });
-    const fillCellValue = config.fillCellValue || (v => v);
-
-    const map = [];
-
-    for (let x = 0; x < config.width; x++) {
-        map.push([]);
-        for(let y = 0; y < config.height; y++) {
-            map[x][y] = fillCellValue(noise(x, y));
-        }
-    }
-    return map;
-}
-
-
 // Terrain generation
 // Idea:
 // Generate 2d noise grid.
@@ -139,13 +113,6 @@ interface TerrainBuilderConfig {
 }
 
 
-interface LayerConfig {
-    id: string;
-    seed?: string;
-    threshold: (noise: number, x: number, y: number) => boolean; // 0<=n<=1 - Defines which data meets the layer criteria
-    smoothness: number; // 0<=n<=Infinity - Lower numbers increase smoothness, higher numbers increase volatility
-}
-
 function terrainBuilder(config: TerrainBuilderConfig) {
     type LayerFn = (x: number, y: number) => string | null;
     const layerFns: LayerFn[] = [];
@@ -160,12 +127,21 @@ function terrainBuilder(config: TerrainBuilderConfig) {
     return terrainBuilder;
 
 
-    function layer(config: LayerConfig) {
-        const noiseFn = createNoiseFn(config);
+    function layer(layerConfig: LayerConfig) {
+        const noiseFn = createNoiseFn(layerConfig);
 
         layerFns.push((x, y) => {
-            const isWithinThreshold = config.threshold(noiseFn(x, y), x, y);
-            return isWithinThreshold ? config.id : null;
+            const cellValue = (layerConfig.modifyCellValueFns || []).reduce((cellValue, modifyValue) => {
+                const cell = {
+                    x,
+                    y,
+                    value: cellValue,
+                };
+                return modifyValue(cell, config);
+
+            }, noiseFn(x, y))
+            const isWithinThreshold = cellValue <= layerConfig.threshold;
+            return isWithinThreshold ? layerConfig.id : null;
         });
 
         return terrainBuilder;
@@ -187,7 +163,7 @@ function terrainBuilder(config: TerrainBuilderConfig) {
             for(let y = 0; y < config.height; y++) {
 
                 // Initialize cell to undefined
-                grid[x][y] = undefined;
+                grid[x][y] = null;
 
                 // Handle layers in reverse order because last layer takes precedence
                 for (const layerFn of layerFns.slice().reverse()) {

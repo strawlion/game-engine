@@ -6,12 +6,28 @@
     "scripts": {
         "clean": "rimraf dist",
         "build": "yarn clean && webpack",
-        "build.watch": "yarn clean && webpack --watch"
+        "build.watch": "yarn clean && webpack --watch",
+        "test": "jest"
+    },
+    "babel": {
+        "presets": [
+            [
+                "@babel/preset-env",
+                {
+                    "targets": {
+                        "node": "current"
+                    }
+                }
+            ],
+            "@babel/preset-typescript"
+        ]
     },
     "devDependencies": {
+        "@babel/preset-typescript": "^7.10.1",
         "@vue/cli": "^4.4.1",
         "copy-webpack-plugin": "^6.0.2",
         "css-loader": "^3.5.3",
+        "jest": "^26.0.1",
         "rimraf": "^3.0.2",
         "ts-loader": "^7.0.5",
         "typescript": "^3.9.5",

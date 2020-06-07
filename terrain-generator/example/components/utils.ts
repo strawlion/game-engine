@@ -1,4 +1,5 @@
-import terrainGenerationUtils from '../../src/index';
+import terrainGenerationUtils from '../../src';
+import LayerConfig from '../../src/LayerConfig';
 
 export default {
     generateTerrain,
@@ -87,20 +88,15 @@ function generateTerrain(world: World, options: GenerateTerrainOptions): Block[]
     return terrainBlocks;
 }
 
-interface LayerConfig {
-    id: string;
-    seed: string;
-    color: string;
-    smoothness: number;
-    threshold: (noise: number, x: number, y: number) => boolean;
-    scalingFactor: number;
-}
 
+interface UILayerConfig extends LayerConfig {
+    color: string;
+}
 
 interface GenerateTerrainOptions {
     width: number;
     height: number;
-    layers: LayerConfig[];
+    layers: UILayerConfig[];
     noMatchingLayerColor: string;
 }
 

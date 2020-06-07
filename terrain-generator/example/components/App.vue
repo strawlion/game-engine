@@ -33,10 +33,13 @@
                 :smoothness="layer.smoothness"
                 :onSmoothnessChange="smoothness => layer.smoothness = smoothness"
 
-                :threshold="layer.thresholdValue"
-                :onThresholdChange="threshold => layer.thresholdValue = threshold"
+                :threshold="layer.threshold"
+                :onThresholdChange="threshold => layer.threshold = threshold"
 
+                :onAlgorithmChange="newModifyCellValueFn => onAlgorithmChange(layer, newModifyCellValueFn)"
                 :onRemoveLayerClicked="removeLayer"
+
+                :gridConfig="gridConfig"
             />
             <button
                 class="add-layer-button"
@@ -82,26 +85,26 @@ export default {
             id: 'originTest',
             color: Color.water,
             // Example of having values radiate from an origin
-            threshold(noise, x, y) {
-                const { width, height } = self.gridConfig;
-                const originPoint = {
-                    x: 0,
-                    y: 0,
-                };
+            // threshold(noise, x, y) {
+            //     const { width, height } = self.gridConfig;
+            //     const originPoint = {
+            //         x: 0,
+            //         y: 0,
+            //     };
 
-                const distanceFromOrigin = Math.sqrt((originPoint.x - x) ** 2 + (originPoint.y - y) ** 2);
-                const maxWorldDistance = Math.sqrt(width ** 2 + height ** 2);
-                const percOfMaxDistance = distanceFromOrigin / maxWorldDistance;
-                const pointCloseness = 1 - percOfMaxDistance;
+            //     const distanceFromOrigin = Math.sqrt((originPoint.x - x) ** 2 + (originPoint.y - y) ** 2);
+            //     const maxWorldDistance = Math.sqrt(width ** 2 + height ** 2);
+            //     const percOfMaxDistance = distanceFromOrigin / maxWorldDistance;
+            //     const pointCloseness = 1 - percOfMaxDistance;
 
-                // Creates more filled in around origin (why?)
-                // Mostly Guarantees points around origin are included
-                // return (noise * percOfMaxDistance) <= originTestLayer.thresholdValue;
+            //     // Creates more filled in around origin (why?)
+            //     // Mostly Guarantees points around origin are included
+            //     // return (noise * percOfMaxDistance) <= originTestLayer.thresholdValue;
 
-                // Creates more sparse around origin, but still more closer
-                // Only taking away
-                return noise <= (originTestLayer.thresholdValue * pointCloseness);
-            }
+            //     // Creates more sparse around origin, but still more closer
+            //     // Only taking away
+            //     return noise <= (originTestLayer.thresholdValue * pointCloseness);
+            // }
         });
 
         return {
@@ -143,20 +146,29 @@ export default {
         },
         removeLayer(id) {
             this.layers = this.layers.filter(layer => layer.id !== id);
+        },
+        onAlgorithmChange(layer, newModifyCellValueFn) {
+            this.layers = this.layers.map(l => {
+                if (l === layer) {
+                    return {
+                        ...l,
+                        modifyCellValueFns: [newModifyCellValueFn],
+                    };
+                }
+                return l;
+            });
         }
     }
 };
 
 function createLayer(options) {
-    const layer = {
+    return {
         id: options.id,
         seed: options.seed || createRandomSeed(),
         color: options.color || createRandomHex(),
         smoothness: 0.32,
-        thresholdValue: 0.38,
-        threshold: options.threshold || (noise => noise <= layer.thresholdValue),
+        threshold: 0.38,
     };
-    return layer;
 }
 
 function createRandomSeed() {

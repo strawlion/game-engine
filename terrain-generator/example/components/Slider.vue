@@ -16,12 +16,12 @@
 <script>
 export default {
     props: {
-        name: String,
-        min: Number,
-        max: Number,
-        step: Number,
-        value: Number,
-        onChange: Function,
+        name: { type: String, required: true },
+        min: { type: Number, required: true },
+        max: { type: Number, required: true },
+        step: { type: Number, required: true },
+        value: { type: Number, required: false }, // Why does this cause things to throw?
+        onChange: { type: Function, required: true },
     },
     methods: {
         onInputEvent(event) {
