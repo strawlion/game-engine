@@ -147,12 +147,12 @@ export default {
         removeLayer(id) {
             this.layers = this.layers.filter(layer => layer.id !== id);
         },
-        onAlgorithmChange(layer, newModifyCellValueFn) {
+        onAlgorithmChange(layer, newModifyThresholdFn) {
             this.layers = this.layers.map(l => {
                 if (l === layer) {
                     return {
                         ...l,
-                        modifyCellValueFns: [newModifyCellValueFn],
+                        modifyThresholdFns: [newModifyThresholdFn],
                     };
                 }
                 return l;

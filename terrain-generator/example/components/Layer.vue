@@ -132,13 +132,14 @@ const ModifyCellFn = {
                 const distanceFromOrigin = Math.sqrt((config.x - cell.x) ** 2 + (config.y - cell.y) ** 2);
                 // const maxWorldDistance = Math.sqrt(width ** 2 + height ** 2);
                 const percOfMaxDistance = distanceFromOrigin / config.intensity;//maxWorldDistance;
+                const closenessToOrigin = 1 - percOfMaxDistance;
 
                 // 0.50 value
                 // 1% away
                 // currently - 0.50 * 0.01 === 0.005
                 // desired - 0.50 *
 
-                return cell.value * percOfMaxDistance;
+                return cell.threshold * closenessToOrigin;
             };
         },
     },

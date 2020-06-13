@@ -1,20 +1,21 @@
 import terrainGenerator from '.';
 import Vector from './Vector';
-import ModifyCellValue from './ModifyCellValue';
+import ModifyThreshold from './ModifyThreshold';
 const { terrainBuilder } = terrainGenerator;
 
 
-const CreateModifyCellValueFn: Record<string, (config) => ModifyCellValue> = {
+const CreateModifyThresholdFn: Record<string, (config) => ModifyThreshold> = {
 
     // TODO: Linear decay, linear growth
     ConcentratedOrigin: (origin: Vector) => {
-        return (cell, grid) => {
-            const { width, height } = grid;
+        return (cell, worldInfo) => {
+            const { width, height } = worldInfo;
 
             const distanceFromOrigin = Math.sqrt((origin.x - cell.x) ** 2 + (origin.y - cell.y) ** 2);
             const maxWorldDistance = Math.sqrt(width ** 2 + height ** 2);
             const percOfMaxDistance = distanceFromOrigin / maxWorldDistance;
-            return cell.value * percOfMaxDistance;
+            const closenessToOrigin = 1 - percOfMaxDistance;
+            return cell.threshold * closenessToOrigin;
         };
     }
 };
@@ -36,8 +37,8 @@ describe('terrainGenerator', () => {
                     seed,
                     smoothness: 0.5,
                     threshold: 0.2,
-                    modifyCellValueFns: [
-                        CreateModifyCellValueFn.ConcentratedOrigin({
+                    modifyThresholdFns: [
+                        CreateModifyThresholdFn.ConcentratedOrigin({
                             x: 0,
                             y: 0,
                         }),

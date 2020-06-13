@@ -3,6 +3,212 @@ import Vector from './Vector';
 import LayerConfig from './LayerConfig';
 
 
+export default {
+    generateCellularGrid,
+    terrainBuilder,
+};
+
+
+
+// Terrain generation
+// Idea:
+// Generate 2d noise grid.
+// Assign either cave or grass to each square (user defined thresholds)
+// Higher level logic?
+
+
+// Cave generation
+// Idea:
+//      - Generate grid of dirt
+//      - Generate grid of noise
+//      - Select random start points on dirt grid, and recursively "dig" from point
+// Explanation:
+//      - Nearby points within a set stddev will become part of the cave
+//
+// Cave "Digging" Properties:
+//      - DigDecay - 0<=n<=1 - Decrease threshold for digging next block by this amount over time. Sets upper bound on total cave size
+//      - DigThreshold - 0<=n<=1 - Threshold for digging next block. Neighbor must be within this amount to be dug
+//          - Note: Can have optional x/y threshold to encourage deeper/wider holes
+//      - AngleAdjustment - 0<=n<=1 - Encourage how curvy tunnel is. Create vector of average direction of tunnel (how?), adjust DigThreshold by this amount
+//          - Note: can have x,y to encourage upward or downward curves
+
+
+interface TerrainBuilderConfig {
+    width: number;
+    height: number;
+}
+
+
+function terrainBuilder(config: TerrainBuilderConfig) {
+    type LayerFn = (x: number, y: number) => string | null;
+    const layerFns: LayerFn[] = [];
+
+
+    const terrainBuilder = {
+        layer,
+        layers,
+        build,
+    };
+
+    return terrainBuilder;
+
+
+    function layer(layerConfig: LayerConfig) {
+        const noiseFn = createNoiseFn(layerConfig);
+
+        layerFns.push((x, y) => {
+
+            const cellThreshold = (layerConfig.modifyThresholdFns || []).reduce((threshold, modifyThreshold) => {
+                return modifyThreshold({
+                    x,
+                    y,
+                    threshold,
+                }, config);
+            }, layerConfig.threshold);
+
+            const cellValue = noiseFn(x, y);
+            const isWithinThreshold = cellValue <= cellThreshold;
+            return isWithinThreshold ? layerConfig.id : null;
+        });
+
+        return terrainBuilder;
+    }
+
+    function layers(configs: LayerConfig[]) {
+        for (const layerConfig of configs) {
+            layer(layerConfig);
+        }
+
+        return terrainBuilder;
+    }
+
+    function build() {
+        const grid = [];
+
+        for (let x = 0; x < config.width; x++) {
+            grid.push([]);
+            for(let y = 0; y < config.height; y++) {
+
+                // Initialize cell to undefined
+                grid[x][y] = null;
+
+                // Handle layers in reverse order because last layer takes precedence
+                for (const layerFn of layerFns.slice().reverse()) {
+                    const cellValue = layerFn(x, y);
+                    if (cellValue) {
+                        grid[x][y] = cellValue;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return grid;
+    }
+
+}
+
+
+// resourcew
+// https://gamedev.stackexchange.com/questions/53400/cave-generation-with-perlin-worms
+// https://gamedev.stackexchange.com/questions/33590/how-to-generate-caves-that-resemble-those-of-minecraft
+// http://libnoise.sourceforge.net/examples/worms/index.html
+// https://www.reddit.com/r/proceduralgeneration/comments/da8gms/generate_structures_in_chunkbased_terrain/
+// https://www.reddit.com/r/proceduralgeneration/comments/2zjp51/chunk_based_world_generation/
+// https://github.com/KdotJPG/OpenSimplex2
+// https://forum.unity.com/threads/procedural-world-generation-tips-advice-for-loading-a-voxel-type-level.318105/
+// https://github.com/Team-RTG/Realistic-Terrain-Generation/tree/1.12.2-dev/src/main/java/rtg/world/biome/realistic
+
+// https://www.redblobgames.com/maps/terrain-from-noise/
+// https://stackoverflow.com/questions/13623663/i-cannot-generate-smooth-simplex-noise-in-javascript
+// https://terraria.fandom.com/wiki/World_Size#:~:text=Upon%20creating%20a%20new%20world,370%20blocks%20above%20underground%20level.
+
+// Chunk Engine
+// Chunks (2D array)
+//  - Grid within chunks 2D array
+//  - Chunks saved on disk. Always load chunks near to user
+
+
+interface CreateNoiseConfig {
+    seed?: string;
+    smoothness?: number; // Define how smooth the noise output is
+    // TODO: Should this be handled externally?
+}
+function createNoiseFn(config?: CreateNoiseConfig) {
+    const { seed, smoothness = 1 } = config;
+    const simplexNoise = new SimplexNoise(seed || undefined);
+
+    return noise;
+
+    function noise(x, y) {
+        // 0.5 to make 0 to 1 encompass mostly usable range
+        const smoothnessFactor = smoothness * 0.5;
+
+        // Scale range to 0-1 for ease of consumption
+        return scale(
+            simplexNoise.noise2D(
+                (x * smoothnessFactor),
+                (y * smoothnessFactor),
+            ),
+            -1, 1, // Input range
+             0, 1 // Output range
+        );
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 interface TerrainGenerationConfig {
     width: number;
     height: number;
@@ -11,12 +217,6 @@ interface TerrainGenerationConfig {
     birthNumber: number; // number of living neighbours at which a dead cell becomes alive.
     numberOfSteps: number; // number of times we perform the simulation step.
 }
-
-export default {
-    generateCellularGrid,
-    terrainBuilder,
-};
-
 // TODO: Floodfill to count caves https://en.wikipedia.org/wiki/Flood_fill
 // Cellular Automata
 function generateCellularGrid(config: TerrainGenerationConfig) {
@@ -84,102 +284,8 @@ function generateCellularGrid(config: TerrainGenerationConfig) {
 }
 
 
-// Terrain generation
-// Idea:
-// Generate 2d noise grid.
-// Assign either cave or grass to each square (user defined thresholds)
-// Higher level logic?
 
 
-// Cave generation
-// Idea:
-//      - Generate grid of dirt
-//      - Generate grid of noise
-//      - Select random start points on dirt grid, and recursively "dig" from point
-// Explanation:
-//      - Nearby points within a set stddev will become part of the cave
-//
-// Cave "Digging" Properties:
-//      - DigDecay - 0<=n<=1 - Decrease threshold for digging next block by this amount over time. Sets upper bound on total cave size
-//      - DigThreshold - 0<=n<=1 - Threshold for digging next block. Neighbor must be within this amount to be dug
-//          - Note: Can have optional x/y threshold to encourage deeper/wider holes
-//      - AngleAdjustment - 0<=n<=1 - Encourage how curvy tunnel is. Create vector of average direction of tunnel (how?), adjust DigThreshold by this amount
-//          - Note: can have x,y to encourage upward or downward curves
-
-
-interface TerrainBuilderConfig {
-    width: number;
-    height: number;
-}
-
-
-function terrainBuilder(config: TerrainBuilderConfig) {
-    type LayerFn = (x: number, y: number) => string | null;
-    const layerFns: LayerFn[] = [];
-
-
-    const terrainBuilder = {
-        layer,
-        layers,
-        build,
-    };
-
-    return terrainBuilder;
-
-
-    function layer(layerConfig: LayerConfig) {
-        const noiseFn = createNoiseFn(layerConfig);
-
-        layerFns.push((x, y) => {
-            const cellValue = (layerConfig.modifyCellValueFns || []).reduce((cellValue, modifyValue) => {
-                const cell = {
-                    x,
-                    y,
-                    value: cellValue,
-                };
-                return modifyValue(cell, config);
-
-            }, noiseFn(x, y))
-            const isWithinThreshold = cellValue <= layerConfig.threshold;
-            return isWithinThreshold ? layerConfig.id : null;
-        });
-
-        return terrainBuilder;
-    }
-
-    function layers(configs: LayerConfig[]) {
-        for (const layerConfig of configs) {
-            layer(layerConfig);
-        }
-
-        return terrainBuilder;
-    }
-
-    function build() {
-        const grid = [];
-
-        for (let x = 0; x < config.width; x++) {
-            grid.push([]);
-            for(let y = 0; y < config.height; y++) {
-
-                // Initialize cell to undefined
-                grid[x][y] = null;
-
-                // Handle layers in reverse order because last layer takes precedence
-                for (const layerFn of layerFns.slice().reverse()) {
-                    const cellValue = layerFn(x, y);
-                    if (cellValue) {
-                        grid[x][y] = cellValue;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return grid;
-    }
-
-}
 
 
 // TODO: Support "global caves"
@@ -317,52 +423,4 @@ function isInBounds(valuesArray, indexArray) {
         }
     }
     return true;
-}
-
-
-// resourcew
-// https://gamedev.stackexchange.com/questions/53400/cave-generation-with-perlin-worms
-// https://gamedev.stackexchange.com/questions/33590/how-to-generate-caves-that-resemble-those-of-minecraft
-// http://libnoise.sourceforge.net/examples/worms/index.html
-// https://www.reddit.com/r/proceduralgeneration/comments/da8gms/generate_structures_in_chunkbased_terrain/
-// https://www.reddit.com/r/proceduralgeneration/comments/2zjp51/chunk_based_world_generation/
-// https://github.com/KdotJPG/OpenSimplex2
-// https://forum.unity.com/threads/procedural-world-generation-tips-advice-for-loading-a-voxel-type-level.318105/
-// https://github.com/Team-RTG/Realistic-Terrain-Generation/tree/1.12.2-dev/src/main/java/rtg/world/biome/realistic
-
-// https://www.redblobgames.com/maps/terrain-from-noise/
-// https://stackoverflow.com/questions/13623663/i-cannot-generate-smooth-simplex-noise-in-javascript
-// https://terraria.fandom.com/wiki/World_Size#:~:text=Upon%20creating%20a%20new%20world,370%20blocks%20above%20underground%20level.
-
-// Chunk Engine
-// Chunks (2D array)
-//  - Grid within chunks 2D array
-//  - Chunks saved on disk. Always load chunks near to user
-
-
-interface CreateNoiseConfig {
-    seed?: string;
-    smoothness?: number; // Define how smooth the noise output is
-    // TODO: Should this be handled externally?
-}
-function createNoiseFn(config?: CreateNoiseConfig) {
-    const { seed, smoothness = 1 } = config;
-    const simplexNoise = new SimplexNoise(seed || undefined);
-
-    return noise;
-
-    function noise(x, y) {
-        // 0.5 to make 0 to 1 encompass mostly usable range
-        const smoothnessFactor = smoothness * 0.5;
-
-        // Scale range to 0-1 for ease of consumption
-        return scale(
-            simplexNoise.noise2D(
-                (x * smoothnessFactor),
-                (y * smoothnessFactor),
-            ),
-            -1, 1, // Input range
-             0, 1 // Output range
-        );
-    }
 }
