@@ -8,6 +8,7 @@ export default {
     createRandomHex,
 };
 
+// TODO: Producing out of bounds terrain at certain widths/heights
 function generateTerrain(world: World, options: GenerateTerrainOptions): Block[] {
     const { terrainBuilder } = terrainGenerationUtils;
     const grid = terrainBuilder({
@@ -25,8 +26,8 @@ function generateTerrain(world: World, options: GenerateTerrainOptions): Block[]
     const terrainOriginY = 0;
     const numHorizontalBlocks = grid.length;
     const numVerticalBlocks = grid[0].length;
-    const blockWidth = Math.ceil(world.width / numHorizontalBlocks);
-    const blockHeight = Math.ceil((world.height - terrainOriginY) / numVerticalBlocks);
+    const blockWidth = world.width / numHorizontalBlocks
+    const blockHeight = (world.height - terrainOriginY) / numVerticalBlocks
 
     const terrainBlocks: Block[] = [];
     for (let x = 0; x < grid.length; x++) {

@@ -114,17 +114,28 @@ function Layer(props: OwnProps & StoreState) {
                     marginTop: 10,
                     fontWeight: 'bold',
                 }}>Filter</div>
+                <button
+                    className="add-filter-button"
+                    style={{
+                        marginTop: 10,
+                        marginBottom: 10,
+                    }}
+                    onClick={() => store.dispatch({ type: 'AddLayerFilterClicked', layerId: props.layer.id })}
+                >Add Filter</button>
                 <select
-                    // onChange={algorithmChanged}
+                    value={ selectedLayerFilter ? selectedLayerFilter.id : 'default' }
+                    // onChange={ () => store.dispatch({ type: LayerFilterTypeChanged }) }
                     >
-                    <option disabled selected> -- select an option -- </option>
+                    <option
+                        value="default"
+                        disabled> -- select an option -- </option>
                     { layerFilters.map(filter => <option key={filter.id}>{ filter.id }</option>)}
                 </select>
 
                  { selectedLayerFilter &&
                     <selectedLayerFilter.settingsComponent
                         layerId={props.layer.id}
-                        filterId={selectedLayerFilter.id}
+                        filterId={selectedLayerFilterConfig.id}
                     />
                 }
 

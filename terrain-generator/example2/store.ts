@@ -3,6 +3,8 @@ import LayerConfig from '../src/LayerConfig';
 import ModifyThresholdType from './layerFilters/ModifyThresholdType';
 import UILayerConfig from './UILayerConfig';
 import utils from './utils';
+import { createReducer } from '@reduxjs/toolkit'
+import { keyframes } from 'styled-components';
 
 
 const Color = {
@@ -26,6 +28,11 @@ interface State {
 
 interface AddLayerClicked {
     type: 'AddLayerClicked';
+}
+
+interface AddLayerFilterClicked {
+    type: 'AddLayerFilterClicked';
+    layerId: string;
 }
 
 interface RemoveLayerClicked {
@@ -67,9 +74,8 @@ interface GridHeightSliderChanged {
     value: number;
 }
 
-// TODO: Make more granular
-interface LayerFilterChanged {
-    type: 'LayerFilterChanged';
+interface LayerFilterPropChanged {
+    type: 'LayerFilterPropChanged';
     layerId: string;
     filterId: string;
     propName: string;
@@ -92,52 +98,57 @@ type Action =   AddLayerClicked |
                 LayerColorChanged |
                 LayerSmoothnessChanged |
                 LayerThresholdChanged |
-                LayerFilterChanged |
-                LayerFilterTypeChanged;
+                LayerFilterPropChanged |
+                LayerFilterTypeChanged |
+                AddLayerFilterClicked;
 
 
 // TODO: Add support for record
 
-type Reducer = (state: State, action: Action) => State;
+type Reducer = (state: State, action: Action) => void;
 
-const actionToHandler: Record<Action['type'] | 'default', Reducer> = {
+const actionToHandler: Record<Action['type'], Reducer> = {
     AddLayerClicked: (state) => {
-        return {
-            ...state,
-            layers: [
-                ...state.layers,
-                createLayer({
-                    id: utils.createRandomSeed(),
-                })
-            ]
-        };
+        state.layers.push(
+            createLayer({
+                id: utils.createRandomSeed(),
+            })
+        );
     },
     RemoveLayerClicked: (state, action: RemoveLayerClicked) => {
-        return {
-            ...state,
-            layers: state.layers.filter(layer => layer.id !== action.layerId)
-        }
+        state.layers = state.layers.filter(layer => layer.id !== action.layerId)
+    },
+    AddLayerFilterClicked: (state, action: AddLayerFilterClicked) => {
+        const layer = state.layers.find(l => l.id === action.layerId);
+        const maxWorldDistance = Math.sqrt(state.gridConfig.width ** 2 + state.gridConfig.height ** 2);
+        layer.filters.push({
+            id: utils.createRandomSeed(),
+            type: 'ConcentratedOrigin',
+            originX: 0,
+            originY: 0,
+            intensity: Math.floor(maxWorldDistance/2),
+        });
     },
     LayerSeedChanged: (state, action: LayerSeedChanged) => {
-        return updateLayerValue(state, action.layerId, layer => ({ ...layer, seed: action.value }));
+        const layer = state.layers.find(l => l.id === action.layerId);
+        layer.seed = action.value;
     },
     LayerColorChanged: (state, action: LayerColorChanged) => {
-        return updateLayerValue(state, action.layerId, layer => ({ ...layer, color: action.value }));
+        const layer = state.layers.find(l => l.id === action.layerId);
+        layer.color = action.value;
     },
     LayerSmoothnessChanged: (state, action: LayerSmoothnessChanged) => {
-        return updateLayerValue(state, action.layerId, layer => ({ ...layer, smoothness: action.value }));
+        const layer = state.layers.find(l => l.id === action.layerId);
+        layer.smoothness = action.value;
     },
     LayerThresholdChanged: (state, action: LayerThresholdChanged) => {
-        return updateLayerValue(state, action.layerId, layer => ({ ...layer, threshold: action.value }));
+        const layer = state.layers.find(l => l.id === action.layerId);
+        layer.threshold = action.value;
     },
-    LayerFilterChanged: (state, action: LayerFilterChanged) => {
-        return updateLayerValue(state, action.layerId, layer => {
-            return {
-                ...layer,
-                filters: layer.filters.map(f => f.id === action.filterId ? ({ ...f, [action.propName]: action.value })
-                                                                         : f)
-            };
-        })
+    LayerFilterPropChanged: (state, action: LayerFilterPropChanged) => {
+        const layer = state.layers.find(l => l.id === action.layerId);
+        const filter = layer.filters.find(f => f.id === action.filterId);
+        filter[action.propName] = action.value;
     },
 
     // Add/remove changed
@@ -153,54 +164,39 @@ const actionToHandler: Record<Action['type'] | 'default', Reducer> = {
         // })
     },
     GridWidthSliderChanged: (state, action: GridWidthSliderChanged) => {
-        return {
-            ...state,
-            gridConfig: {
-                ...state.gridConfig,
-                width: action.value,
-            },
-        };
+        state.gridConfig.width = action.value;
     },
     GridHeightSliderChanged: (state, action: GridHeightSliderChanged) => {
-        return {
-            ...state,
-            gridConfig: {
-                ...state.gridConfig,
-                height: action.value,
-            },
-        };
-    },
-    default: (state): State => {
-        return state || {
-            renderConfig: {
-                width: 600,
-                height: 400,
-                noMatchingLayerColor: 'black',
-            },
-            gridConfig: {
-                width: 50,
-                height: 50,
-            },
-            layers: [
-                createLayer({
-                    id: 'dirt',
-                    color: Color.dirtBrown,
-                }),
-                createLayer({
-                    id: 'originTest',
-                    color: Color.water,
-                }),
-            ],
-        };
+        state.gridConfig.height = action.value;
     },
 }
 
 
-// TODO: Add store extension to shorten action dispatch logic
-const store = createStore((state: State, action: Action) => {
-    const actionHandler = actionToHandler[action.type] || actionToHandler.default;
-    return actionHandler(state, action);
-});
+const defaultState = {
+    renderConfig: {
+        width: 600,
+        height: 400,
+        noMatchingLayerColor: 'black',
+    },
+    gridConfig: {
+        width: 50,
+        height: 50,
+    },
+    layers: [
+        createLayer({
+            id: 'dirt',
+            color: Color.dirtBrown,
+        }),
+        createLayer({
+            id: 'originTest',
+            color: Color.water,
+        }),
+    ],
+};
+
+const store = createStore(
+    createReducer(defaultState, actionToHandler)
+);
 
 export default store;
 
@@ -212,15 +208,5 @@ function createLayer(options): UILayerConfig {
         smoothness: 0.32,
         threshold: 0.38,
         filters: [],
-    };
-}
-
-function updateLayerValue(state: State, layerId: string, updateLayer: (layer: UILayerConfig) => UILayerConfig): State {
-    return {
-        ...state,
-        layers: state.layers.map(layer => {
-            const isChangedLayer = layer.id === layerId;
-            return isChangedLayer ? updateLayer(layer) : layer;
-        })
     };
 }
