@@ -1,14 +1,10 @@
 import Body from './Body';
+import Vector from '../Vector';
 
 export default {
     circle,
     rectangle,
 };
-
-interface Vector {
-    x: number;
-    y: number;
-}
 
 function circle(config: {
         x: number;

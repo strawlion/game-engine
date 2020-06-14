@@ -1,0 +1,29 @@
+{
+    "name": "physics",
+    "version": "1.0.0",
+    "main": "dist/main.js",
+    "types": "dist/src/index.d.ts",
+    "scripts": {
+        "clean": "rimraf dist",
+        "build": "yarn clean && webpack",
+        "build.watch": "yarn clean && webpack --watch",
+        "test": "jest"
+    },
+    "babel": {
+        "presets": [
+            [
+                "@babel/preset-env",
+                {
+                    "targets": {
+                        "node": "current"
+                    }
+                }
+            ],
+            "@babel/preset-typescript"
+        ]
+    },
+    "devDependencies": {
+        "@types/jest": "^26.0.0",
+        "rimraf": "^3.0.2"
+    }
+}
