@@ -126,7 +126,7 @@ const actionToHandler: Record<Action['type'], Reducer> = {
             type: 'ConcentratedOrigin',
             originX: 0,
             originY: 0,
-            intensity: Math.floor(maxWorldDistance/2),
+            intensity: 1,
         });
     },
     LayerSeedChanged: (state, action: LayerSeedChanged) => {

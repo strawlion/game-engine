@@ -17,10 +17,15 @@ export default {
     )(ConcentratedOrigin),
     create(config: ConcentratedOriginConfig) {
         return (cell: ModifyThresholdCell, grid) => {
+            const maxWorldDistance = Math.sqrt(grid.width ** 2 + grid.height ** 2);
             const distanceFromOrigin = Math.sqrt((config.originX - cell.x) ** 2 + (config.originY - cell.y) ** 2);
-            const percOfMaxDistance = distanceFromOrigin / config.intensity;
+            // const percOfMaxDistance = distanceFromOrigin / config.intensity;
+            // const closenessToOrigin = 1 - percOfMaxDistance;
+            // const closenessToOrigin = 1 - percOfMaxDistance;
+            const percOfMaxDistance = distanceFromOrigin / maxWorldDistance;
+            // config.intensity;
             const closenessToOrigin = 1 - percOfMaxDistance;
-            return cell.threshold * closenessToOrigin;
+            return cell.threshold * (closenessToOrigin * config.intensity);
         };
     },
 };
@@ -68,8 +73,8 @@ function ConcentratedOrigin(props: ConcentratedOriginOwnProps & ComponentStoreSt
              <Slider
                  name="Intensity"
                  min={0}
-                 max={10000}
-                 step={1}
+                 max={10}
+                 step={0.01}
                  value={props.filter.intensity}
                  onChange={value => store.dispatch({
                     type: 'LayerFilterPropChanged',
