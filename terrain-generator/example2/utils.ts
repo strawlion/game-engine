@@ -4,6 +4,8 @@ import Block from './Block';
 
 export default {
     generateTerrain,
+    createRandomSeed,
+    createRandomHex,
 };
 
 function generateTerrain(world: World, options: GenerateTerrainOptions): Block[] {
@@ -43,6 +45,20 @@ function generateTerrain(world: World, options: GenerateTerrainOptions): Block[]
 
     return terrainBlocks;
 }
+
+function createRandomSeed() {
+    const characters = 'abcdefghijklmnopqrstuvwxyz';
+    let seed = '';
+    for (let i = 0; i < 5; i++) {
+        seed += characters[Math.floor(Math.random() * characters.length)];
+    }
+    return seed;
+}
+
+function createRandomHex() {
+    return '#'+Math.floor(Math.random()*16777215).toString(16);
+}
+
 
 
 interface GenerateTerrainOptions {

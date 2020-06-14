@@ -5,6 +5,8 @@ import Slider from './Slider';
 import TextInput from './TextInput';
 import ColorPicker from './ColorPicker';
 import UILayerConfig from './UILayerConfig';
+import ModifyThresholdType from './layerFilters/ModifyThresholdType';
+import ModifyThreshold from '../src/ModifyThreshold';
 
 
 export default connect<StoreState, undefined, OwnProps, ReturnType<typeof store.getState>>(
@@ -25,7 +27,31 @@ interface OwnProps {
     layer: UILayerConfig;
 }
 
+// function selectedFilterChanged(event: React.ChangeEvent<HTMLSelectElement>) {
+//     const newSelectedAlgorithmId = event.currentTarget.value;
+//     const algorithm = ModifyThreshold[this.selectedAlgorithmId];
+
+//     const config = {
+//         width: this.gridConfig.width,
+//         height: this.gridConfig.height,
+//     };
+
+//     const algorithmInstance = algorithm.createMetadataMapping(config, notifyAlgorithmChanged);
+//     this.algorithmInstance = algorithmInstance;
+
+//     notifyAlgorithmChanged();
+
+//     function notifyAlgorithmChanged() {
+//         const modifyCellFn = (...args) => algorithm.create(algorithmInstance.getConfig())(...args);
+//         self.onAlgorithmChange(modifyCellFn);
+//     }
+// };
+
 function Layer(props: OwnProps & StoreState) {
+    const layerFilters = Object.values(ModifyThresholdType);
+    const selectedLayerFilterConfig = props.layer.filters[0];
+    const selectedLayerFilter = selectedLayerFilterConfig ? layerFilters.find(l => l.id === selectedLayerFilterConfig.type) : null;
+    const modifyThresholdFn: ModifyThreshold = (cell, grid) => selectedLayerFilter.create(selectedLayerFilterConfig)(cell, grid);
     return (
     <div
         className="layer-config"
@@ -82,30 +108,27 @@ function Layer(props: OwnProps & StoreState) {
                 onChange={value => store.dispatch({ type: 'LayerThresholdChanged', layerId: props.layer.id, value }) }
             />
 
-            {/* <div className="function-controls">
+            <div className="function-controls">
                 <div className="filter-header"
                 style={{
                     marginTop: 10,
                     fontWeight: 'bold',
                 }}>Filter</div>
                 <select
-                    onChange={algorithmChanged}>
+                    // onChange={algorithmChanged}
+                    >
                     <option disabled selected> -- select an option -- </option>
-                    { algorithms.map(algorithm => <option key={algorithm.id}>{ algorithm.id }</option>)}
-                </select> */}
+                    { layerFilters.map(filter => <option key={filter.id}>{ filter.id }</option>)}
+                </select>
 
-                 {/* { algorithmInstance && algorithmInstance.inputs.length &&
-                    <div
-                        className="function-controls">
-                        <component
-                            v-for="input of algorithmInstance.inputs"
-                            :key="input.id"
-                            :is="input.type"
-                            v-bind="input" />
-                    </div>
-                } */}
+                 { selectedLayerFilter &&
+                    <selectedLayerFilter.settingsComponent
+                        layerId={props.layer.id}
+                        filterId={selectedLayerFilter.id}
+                    />
+                }
 
-            {/* </div> */}
+            </div>
         </div>
     </div>
     );

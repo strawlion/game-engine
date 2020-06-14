@@ -1,13 +1,8 @@
-interface Cell {
-    readonly x: number;
-    readonly y: number;
-    readonly threshold: number;
-}
-
+import ModifyThresholdsholdCell from './ModifyThresholdCell';
 interface WorldInfo {
     width: number;
     height: number;
 }
 
-type ModifyThreshold = (cell: Cell, grid: WorldInfo) => number;
+type ModifyThreshold = (cell: ModifyThresholdsholdCell, grid: WorldInfo) => number;
 export default ModifyThreshold;

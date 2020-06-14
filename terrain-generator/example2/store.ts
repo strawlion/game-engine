@@ -1,6 +1,9 @@
 import { createStore, Store } from 'redux';
 import LayerConfig from '../src/LayerConfig';
+import ModifyThresholdType from './layerFilters/ModifyThresholdType';
 import UILayerConfig from './UILayerConfig';
+import utils from './utils';
+
 
 const Color = {
     dirtBrown: '#573B0C',
@@ -64,6 +67,23 @@ interface GridHeightSliderChanged {
     value: number;
 }
 
+// TODO: Make more granular
+interface LayerFilterChanged {
+    type: 'LayerFilterChanged';
+    layerId: string;
+    filterId: string;
+    propName: string;
+    value: number;
+}
+
+interface LayerFilterTypeChanged {
+    type: 'LayerFilterTypeChanged';
+    layerId: string;
+    filterId: string;
+    value: keyof typeof ModifyThresholdType;
+}
+
+
 type Action =   AddLayerClicked |
                 RemoveLayerClicked |
                 GridWidthSliderChanged |
@@ -71,7 +91,9 @@ type Action =   AddLayerClicked |
                 LayerSeedChanged |
                 LayerColorChanged |
                 LayerSmoothnessChanged |
-                LayerThresholdChanged;
+                LayerThresholdChanged |
+                LayerFilterChanged |
+                LayerFilterTypeChanged;
 
 
 // TODO: Add support for record
@@ -85,7 +107,7 @@ const actionToHandler: Record<Action['type'] | 'default', Reducer> = {
             layers: [
                 ...state.layers,
                 createLayer({
-                    id: createRandomSeed(),
+                    id: utils.createRandomSeed(),
                 })
             ]
         };
@@ -107,6 +129,28 @@ const actionToHandler: Record<Action['type'] | 'default', Reducer> = {
     },
     LayerThresholdChanged: (state, action: LayerThresholdChanged) => {
         return updateLayerValue(state, action.layerId, layer => ({ ...layer, threshold: action.value }));
+    },
+    LayerFilterChanged: (state, action: LayerFilterChanged) => {
+        return updateLayerValue(state, action.layerId, layer => {
+            return {
+                ...layer,
+                filters: layer.filters.map(f => f.id === action.filterId ? ({ ...f, [action.propName]: action.value })
+                                                                         : f)
+            };
+        })
+    },
+
+    // Add/remove changed
+    LayerFilterTypeChanged: (state, action: LayerFilterTypeChanged) => {
+        return null;
+        // ModifyThresholdType[action.value].getDefaultConfig()
+        // return updateLayerValue(state, action.layerId, layer => {
+        //     return {
+        //         ...layer,
+        //         filters: layer.filters.map(f => f.id === action.filterId ? ({ ...f, [action.propName]: action.value })
+        //                                                                  : f)
+        //     };
+        // })
     },
     GridWidthSliderChanged: (state, action: GridWidthSliderChanged) => {
         return {
@@ -163,27 +207,15 @@ export default store;
 function createLayer(options): UILayerConfig {
     return {
         id: options.id,
-        seed: options.seed || createRandomSeed(),
-        color: options.color || createRandomHex(),
+        seed: options.seed || utils.createRandomSeed(),
+        color: options.color || utils.createRandomHex(),
         smoothness: 0.32,
         threshold: 0.38,
+        filters: [],
     };
 }
 
-function createRandomSeed() {
-    const characters = 'abcdefghijklmnopqrstuvwxyz';
-    let seed = '';
-    for (let i = 0; i < 5; i++) {
-        seed += characters[Math.floor(Math.random() * characters.length)];
-    }
-    return seed;
-}
-
-function createRandomHex() {
-    return '#'+Math.floor(Math.random()*16777215).toString(16);
-}
-
-function updateLayerValue(state: State, layerId: string, updateLayer): State {
+function updateLayerValue(state: State, layerId: string, updateLayer: (layer: UILayerConfig) => UILayerConfig): State {
     return {
         ...state,
         layers: state.layers.map(layer => {
