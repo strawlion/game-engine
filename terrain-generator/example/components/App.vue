@@ -111,11 +111,11 @@ export default {
             renderConfig: {
                 width: 600,
                 height: 400,
+                noMatchingLayerColor: 'black',
             },
             gridConfig: {
                 width: 50,
                 height: 50,
-                noMatchingLayerColor: 'black',
             },
             layers: [
                 createLayer({

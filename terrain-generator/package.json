@@ -24,11 +24,15 @@
     },
     "devDependencies": {
         "@babel/preset-typescript": "^7.10.1",
+        "@types/styled-components": "^5.1.0",
         "@vue/cli": "^4.4.1",
         "copy-webpack-plugin": "^6.0.2",
-        "css-loader": "^3.5.3",
+        "css-loader": "^3.6.0",
         "jest": "^26.0.1",
         "rimraf": "^3.0.2",
+        "style-loader": "^1.2.1",
+        "styled-components": "^5.1.1",
+        "styled-jsx": "^3.3.0",
         "ts-loader": "^7.0.5",
         "typescript": "^3.9.5",
         "vue-loader": "^15.9.2",
@@ -37,7 +41,13 @@
         "webpack-cli": "^3.3.11"
     },
     "dependencies": {
+        "@types/react-redux": "^7.1.9",
         "html-webpack-plugin": "^4.3.0",
+        "react": "^16.13.1",
+        "react-dom": "^16.13.1",
+        "react-redux": "^7.2.0",
+        "redux": "^4.0.5",
+        "reselect": "^4.0.0",
         "simplex-noise": "^2.4.0",
         "vue": "^2.6.11"
     }
