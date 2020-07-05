@@ -38,10 +38,15 @@ function getRandomLine({
     };
 }
 
-function getRandomPoint() {
+function getRandomPoint({
+    x = 0,
+    y = 0,
+    width = width,
+    height = height
+} = {}) {
     return {
-      x: random(width),
-      y: random(height)
+      x: random(x, width),
+      y: random(y, height)
     }
 }
 
@@ -67,7 +72,7 @@ function applyNoise({
                     // TODO: Issue is that all x values are same
                     // So all points get same noise value and offset by same ammount
                     // but we want output to look like hills+valley.
-                    noise(index/*point.x*/ / smoothness) * volatility
+                    map(noise(index / smoothness), 0, 1, -1, 1) * volatility
                 )
             )
         }),
