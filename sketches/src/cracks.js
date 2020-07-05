@@ -1,6 +1,8 @@
 import utils from './utils';
-const { getRandomLine, applyNoise } = utils;
-
+const { getRandomLine, applyNoise, getRandomPoint } = utils;
+import v from './vectorUtils';
+// https://www.codeproject.com/Articles/15604/Ray-casting-in-a-2D-tile-based-environment
+// https://www.mathsisfun.com/algebra/vectors-cross-product.html
 export default {
     setup,
     draw,
@@ -23,6 +25,19 @@ function draw() {
     for (const crackLine of crackLines) {
         drawLine(crackLine);
     }
+
+
+
+}
+
+function getLineFromPoints(points) {
+    if (points.length < 2) {
+        throw new Error('Not enough points to form a line!');
+    }
+    return {
+        start: points[0],
+        end: points[points.length - 1],
+    }
 }
 
 function generateCrackLines() {
@@ -35,16 +50,53 @@ function generateCrackLines() {
     const lines = [];
     for (let i = 0; i < numberOfLinesToGenerate; i++) {
         const prevLine = lines[i - 1];
-        const newLineStartPoint = prevLine ? prevLine.points[Math.floor(Math.random() * prevLine.points.length)] : undefined;
+        const newLineStartPoint = prevLine ? prevLine.points[Math.floor(Math.random() * prevLine.points.length)] : getRandomPoint();
+        const newLineEndPoint = getRandomPoint();
+        // const candidateEndPoint = null;
+        const candidateEndPoint = getClosestIntersectingPoint(
+            { points: [newLineStartPoint, newLineEndPoint] },
+            lines.filter(line => line !== prevLine),
+        );
+        const start = newLineStartPoint;
+        const end = candidateEndPoint || newLineEndPoint;
+        if (v.equals(start, end)) {
+            break; // TODO: Don't break, reattempt line gen
+        }
         const newLine = applyNoise({
-            line: getRandomLine({ start: newLineStartPoint }),
+            line: getRandomLine({
+                start,
+                end,
+            }),
             smoothness: 15,
             volatility: 30,
             getShouldApplyNoise: (_, index) => index > 0,
-        })
+        });
+
+
         lines.push(newLine);
     }
+
+
     return lines;
+}
+
+// TODO: Represent all lines as start/end
+function getClosestIntersectingPoint(line, otherLines) {
+    const intersectingPoints = getIntersectionPoints(line, otherLines);
+    const start = intersectingPoints[0];
+    return intersectingPoints.sort((point, otherPoint) => v.distanceBetween(point, start) - v.distanceBetween(otherPoint, start))[0];
+}
+
+function getIntersectionPoints(line, otherLines) {
+    const start = getLineFromPoints(line.points);
+
+    return otherLines.map(otherLine => {
+        return v.getIntersection(
+            start,
+            getLineFromPoints(otherLine.points)
+        );
+    })
+    .filter(v => v);
 }
 
 function drawLine({ points }) {
@@ -57,8 +109,4 @@ function drawLine({ points }) {
             point.x, point.y,
         )
     }
-}
-
-function getData() {
-    ;
 }

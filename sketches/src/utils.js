@@ -12,11 +12,14 @@ function getRandomLine({
         start = getRandomPoint(),
         end = getRandomPoint()
     } = {}) {
+    if (v.equals(start, end)) {
+        throw new Error('Can\'t create line with two equal points');
+    }
     const vectorFromStartToEnd = v.subtract(start, end);
     const distanceBetweenStartAndEnd = v.getMagnitude(vectorFromStartToEnd)
     const unitVector = v.divide(vectorFromStartToEnd, distanceBetweenStartAndEnd);
 
-    const numPointsToSample = distanceBetweenStartAndEnd * sampleRate;
+    const numPointsToSample = Math.max(distanceBetweenStartAndEnd * sampleRate, 2);
     const sampledSegmentLength = distanceBetweenStartAndEnd / numPointsToSample;
     const points = [];
     for (let i = 0; i < numPointsToSample; i++) {
