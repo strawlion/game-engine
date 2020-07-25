@@ -28,7 +28,7 @@ function draw() {
         // 'seed'
         123
     )
-    const smoothness = 200;
+    const smoothness = 1000;
 
     const points = [];
     const grid = [];
@@ -37,7 +37,7 @@ function draw() {
         grid.push(col);
         for (const y of range(height)) {
             const [closestPointWeight, secondClosestPointWeight, thirdClosestPointWeight] = worley.Euclidean(x/smoothness, y/smoothness, 0);
-
+            console.log(closestPointWeight, thirdClosestPointWeight)
             const point = {
                 id: `${x},${y}`,
                 x,
