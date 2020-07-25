@@ -1,6 +1,6 @@
 // import tooloud from 'tooloud';
 // const { Worley } = tooloud;
-import Worley from './Worley';
+import createWorleyNoiseGen from './createWorleyNoiseGen';
 
 // import utils from './utils';
 // const { getRandomLine, applyNoise, getRandomPoint } = utils;
@@ -25,10 +25,9 @@ function draw() {
     // res
     clear()
 
-    const worley = new Worley(
-        // 'seed'
-        123
-    )
+    const worley = createWorleyNoiseGen({
+                        seed: 123,
+                    });
     const smoothness = 100;
 
     const points = [];
@@ -37,8 +36,15 @@ function draw() {
         const col = [];
         grid.push(col);
         for (const y of range(height)) {
-            const result = worley.Euclidean(x/smoothness, y/smoothness, 0);
-            const [closestPointWeight, secondClosestPointWeight, thirdClosestPointWeight] = worley.Euclidean(x/smoothness, y/smoothness, 0);
+            const nearbyFeatures = worley.getNearbyFeaturePoints({
+                x: x/smoothness,
+                y: y/smoothness,
+            })
+
+            const closestPointWeight = nearbyFeatures[0].distance;
+            // const result = worley.Euclidean(x/smoothness, y/smoothness, 0);
+            // const [closestPointWeight, secondClosestPointWeight, thirdClosestPointWeight] = worley.Euclidean(x/smoothness, y/smoothness, 0);
+            // wor
             const point = {
                 id: `${x},${y}`,
                 x,
