@@ -4,6 +4,7 @@ export default {
     getRandomLine,
     getRandomPoint,
     applyNoise,
+    range,
 }
 
 // TODO: Allow defining width and height
@@ -84,5 +85,12 @@ function getSeededNoiseFn() {
     const seed = Math.random().toFixed(10).slice(2)
     return (...args) => {
         return noise(...args, seed);
+    }
+}
+
+function range(min, max) {
+    const values = [];
+    for (let i = min; i < max; i++) {
+        values.push(i);
     }
 }

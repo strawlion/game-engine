@@ -132,8 +132,8 @@ function generateCrackLines() {
                 start,
                 end,
             }),
-            smoothness: 15,
-            volatility: 30,
+            smoothness: 30,
+            volatility: 20,
             getShouldApplyNoise: (_, index) => index > 0,
         });
 

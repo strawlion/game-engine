@@ -2579,6 +2579,11 @@ toidentifier@1.0.0:
   resolved "https://maven.dc1.thousandeyes.com/content/groups/npm/toidentifier/-/toidentifier-1.0.0.tgz#7e1be3470f1e77948bc43d94a3c8f4d7752ba553"
   integrity sha512-yaOH/Pk/VEhBWWTlhI+qXxDFXlejDGcQipMlyxda9nthulaxLZUNcUqFxokp0vcYnvteJln5FNQDRrxj3YcbVw==
 
+tooloud@^2.0.4:
+  version "2.0.4"
+  resolved "https://maven.dc1.thousandeyes.com/content/groups/npm/tooloud/-/tooloud-2.0.4.tgz#c4a69b9db8e5c1a41bcd936e1941963150b2559f"
+  integrity sha512-54LuvIiX+8TBs3AH7f/dUmrUEO9E9aT4WY9KvsgVHZN7GpejBfPae6qH+a5jaTi9XXlk1C6sYmx4Sib26WkdWA==
+
 tslib@^1.10.0:
   version "1.13.0"
   resolved "https://maven.dc1.thousandeyes.com/content/groups/npm/tslib/-/tslib-1.13.0.tgz#c881e13cc7015894ed914862d276436fa9a47043"
