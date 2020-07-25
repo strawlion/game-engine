@@ -4,7 +4,7 @@ function createWorleyNoiseGen(options) {
     options = {
         seed: options.seed || 3000,
         getDistance: options.getDistance || getEuclideanDistance,
-    }
+    };
 
     return {
         noise,
