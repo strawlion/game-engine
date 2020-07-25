@@ -36,7 +36,9 @@ export default class Worley {
                 })
             }
         }
-        
+
+        // Compute distances to all feature points in bounding square
+        const featurePointDistances = [];
         for (const boundingSquarePoint of boundingSquarePoints) {
             lastRandom = xorshift(
                 hash(
@@ -54,11 +56,23 @@ export default class Worley {
 
                 const distanceToFeaturePoint = getDistance(input, featurePoint)
                 insert(distanceArray, distanceToFeaturePoint);
-
+                featurePointDistances.push({
+                    featurePoint,
+                    distance: distanceToFeaturePoint,
+                })
             }
-        }
 
-        return distanceArray.map(x => x < 0 ? 0 : x > 1 ? 1 : x);
+            // return featurePointDistances
+            //         .map(v => v.distance)
+            //         .sort((a, b) => a - b)
+            //         .slice(0, 3)
+            //         // TODO: Is this really needed?
+            //         .map(x => x < 0 ? 0 : x > 1 ? 1 : x);
+
+            const temp = distanceArray.map(x => x < 0 ? 0 : x > 1 ? 1 : x);
+            // temp.features = distanceArray.features;
+            return temp;
+        }
     }
 
     setSeed(seed = 3000) {

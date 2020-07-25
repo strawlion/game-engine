@@ -1,5 +1,6 @@
-import tooloud from 'tooloud';
-const { Worley } = tooloud;
+// import tooloud from 'tooloud';
+// const { Worley } = tooloud;
+import Worley from './Worley';
 
 // import utils from './utils';
 // const { getRandomLine, applyNoise, getRandomPoint } = utils;
@@ -24,11 +25,11 @@ function draw() {
     // res
     clear()
 
-    const worley = Worley.create(
+    const worley = new Worley(
         // 'seed'
         123
     )
-    const smoothness = 1000;
+    const smoothness = 100;
 
     const points = [];
     const grid = [];
@@ -36,8 +37,8 @@ function draw() {
         const col = [];
         grid.push(col);
         for (const y of range(height)) {
+            const result = worley.Euclidean(x/smoothness, y/smoothness, 0);
             const [closestPointWeight, secondClosestPointWeight, thirdClosestPointWeight] = worley.Euclidean(x/smoothness, y/smoothness, 0);
-            console.log(closestPointWeight, thirdClosestPointWeight)
             const point = {
                 id: `${x},${y}`,
                 x,
@@ -172,4 +173,15 @@ function getNeighbors(x, y, grid) {
     }
 
     return neighbors;
+}
+
+// TODO: Worley noise idea
+// Randomly distribute points through grid
+// for each pixel, compute distance to nearest point
+// normalize distances such that 0-1 represents min-max distance of set of points closest to that point
+// does this require precomputation? yes, otherwise wont know ranking
+
+
+function worleyNoise() {
+
 }
