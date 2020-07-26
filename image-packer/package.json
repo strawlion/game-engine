@@ -1,0 +1,12 @@
+{
+  "name": "image-packer",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "canvas": "^2.6.1",
+    "find": "^0.3.0",
+    "image-size": "^0.8.3",
+    "merge-images": "^2.0.0"
+  }
+}

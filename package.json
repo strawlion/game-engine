@@ -2,7 +2,7 @@
   "name": "game-engine",
   "version": "1.0.0",
   "private": true,
-  "workspaces": ["game", "terrain-generator", "physics"],
+  "workspaces": ["game", "terrain-generator", "physics", "image-packer"],
   "description": "",
   "main": "index.js",
   "scripts": {

@@ -58,6 +58,7 @@ function draw() {
             });
 
             const closestPointWeight = nearbyFeatures[0].distance;
+            // const closestPointWeight = nearbyFeatures[1].distance;
             // const result = worley.Euclidean(x/smoothness, y/smoothness, 0);
             // const [closestPointWeight, secondClosestPointWeight, thirdClosestPointWeight] = worley.Euclidean(x/smoothness, y/smoothness, 0);
             // wor
@@ -103,39 +104,38 @@ function draw() {
     // console.log(minValue, maxValue)
 
     // Idea is to only render the "tunnel" part
-    for (const featurePointGroup of Object.values(featurePointToPixelPoints)) {
-        featurePointGroup.sort((a, b) => a.distance - b.distance);
-        const furthestPointValue = featurePointGroup[featurePointGroup.length - 1].distance;
+    // for (const featurePointGroup of Object.values(featurePointToPixelPoints)) {
+    //     featurePointGroup.sort((a, b) => a.distance - b.distance);
+    //     const furthestPointValue = featurePointGroup[featurePointGroup.length - 1].distance;
 
-        for (const point of featurePointGroup) {
-            point.value = map(point.distance, 0, furthestPointValue, 0, 1);
-        }
-        for (let {x, y, value} of featurePointGroup) {
-            // if (value < .9) {
-            //     value = 0;
-            // }
-            // Higher values are more white
-            // NOTE: This does not really work, since closest points dont form full circle
-            // What we want to find are the set of points that are furthest from center in a given
-            // direction
-            const strokeColor = value > .9 ? 'white' : 'black';
-            stroke(strokeColor);
-            // stroke(170);
-            point(x, y);
-        }
+    //     for (const point of featurePointGroup) {
+    //         point.value = map(point.distance, 0, furthestPointValue, 0, 1);
+    //     }
+    //     for (let {x, y, value} of featurePointGroup) {
+    //         // if (value < .9) {
+    //         //     value = 0;
+    //         // }
+    //         // Higher values are more white
+    //         // NOTE: This does not really work, since closest points dont form full circle
+    //         // What we want to find are the set of points that are furthest from center in a given
+    //         // direction
+    //         const strokeColor = value > .8 ? 'white' : 'black';
+    //         stroke(strokeColor);
+    //         // stroke(170);
+    //         point(x, y);
+    //     }
         
-    }
-    debugger;
-
-    // for (let {x, y, value} of points) {
-    //     // if (value < 1) {
-    //     //     value = 0;
-    //     // }
-    //     // Higher values are more white
-    //     stroke(Math.floor(255 * value));
-    //     // stroke(170);
-    //     point(x, y);
     // }
+
+    for (let {x, y, value} of points) {
+        // if (value < 1) {
+        //     value = 0;
+        // }
+        // Higher values are more white
+        stroke(Math.floor(255 * value));
+        // stroke(170);
+        point(x, y);
+    }
 }
 
 function traverseLocalMaximum(grid, fn) {
