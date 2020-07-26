@@ -3,25 +3,19 @@ const { Canvas, Image } = require('canvas');
 const process = require('process');
 const { promisify } = require('util');
 const getImageSize = promisify(require('image-size'));
-const path = require('path');
-
-// TODO: Use maintained lib
 const find = require('find');
 
 createSpriteSheet();
 
 
+// TODO:
+// 1) Support types other than png
+// 2) Support animation blending
 async function createSpriteSheet(options = {}) {
     options = {
         rootFolderPath: options.rootFolderPath || process.cwd(),
     };
 
-    // TODO:
-    // 1) Link all related frames into one animation strips
-    // 2) Support other image types
-    // 3) Support logical grouping of animations
-    // How to support standing still animation?
-    // rootFolderPath 
     const imagePaths = await new Promise(resolve => find.file(/\.png$/, options.rootFolderPath, resolve));
 
     // Note: Assuming one level deep for now                
@@ -35,7 +29,6 @@ async function createSpriteSheet(options = {}) {
                             )))
                             .flat();
 
-    // TODO: Images seem to overlap in the spritesheet
     const base64Sheet = await mergeImages( 
                             imageMergeDefs, 
                             {
@@ -46,9 +39,6 @@ async function createSpriteSheet(options = {}) {
                             }
                         );
     
-    console.log(imageMergeDefs)
-    console.log(base64Sheet);
-
     return base64Sheet;
 }
 
@@ -62,9 +52,15 @@ async function getAnimations(imagePaths, rootFolderPath) {
         const [animationName, imageName] = relativeImagePath.split('/');
         animationToFrames[animationName] = animationToFrames[animationName] || [];
         const { width, height } = await getImageSize(imagePath); // TODO: parallelize
+
+        const [_, frameIndex] = imageName.split('-').map(v => parseInt(v)); // TODO: Handle other formats. Defaulting to aseprite one for now
+        if (frameIndex == null) {
+            throw new Error(`Frame index could not be parsed for: ${relativeImagePath}`);
+        }
+
         animationToFrames[animationName].push({
             frameId: relativeImagePath,
-            frameIndex: parseInt(imageName.split('-')[imageName.split('-').length - 1]), // TODO: Handle other formats. Defaulting to aseprite one for now
+            frameIndex,
             width,
             height,
             absolutePath: imagePath,
@@ -93,7 +89,7 @@ async function getAnimations(imagePaths, rootFolderPath) {
                     frames,
                     x: frames[0].x,
                     y: frames[0].y,
-                    width: Math.max(...frames.map(f => f.width)),
+                    width: frames.reduce((width, f) => width + f.width, 0),
                     height: Math.max(...frames.map(f => f.height)),
                 }));
 }
