@@ -7,6 +7,7 @@ import Circle from './body/Circle';
 import Polygon from './body/Polygon';
 
 interface PhysicsObject {
+    type: string;
     body: Body;
     onCollision?: (otherObject: PhysicsObject) => any;
 }
@@ -46,6 +47,9 @@ export default {
 
 function nextTick(world: PhysicsWorld, objects: PhysicsObject[], config: PhysicsConfig = defaultConfig) {
     for (const object of objects) {
+        if (!object.body) {
+            throw new Error(`Cannot apply physics to object '${object.type}' without body!`);
+        }
         // Update position
         object.body.x += object.body.velocity.x - (config.gravity.x * object.body.mass);
         object.body.y += object.body.velocity.y + (config.gravity.y * object.body.mass);

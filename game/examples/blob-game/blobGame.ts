@@ -17,22 +17,34 @@ async function setupGame() {
         height: 600,
         container: document.body,
         targetGameLogicFrameRate: 30,
-        // camera: {
-        //     origin: { x: 0, y: 0 }
-        // },
+        async initialize(game) {
+            const assets = [
+                'images/gridcell.png',
+            ];
+            await Promise.all(assets.map(game.assetLoader.load))
+        },
         update,
-        // TODO: Do we need to use game object to instantiate players?
+        // TODO: Create proxy tree, any modifications to state captured there
+        // Any change to game state is recorded, and 
         getInitialState: game => ({
             dots: [],
             player: createPlayer(game, { x: 400, y: 200 }),
-            worldBounds: createWorldBounds(game),
+            background: game.createGameObject({
+                type: 'background',
+                body: null, // TODO: Body should be optional
+                renderBody: {
+                    image: game.assetLoader.get('images/gridcell.png'),
+                },
+            }),
+            // worldBounds: createWorldBounds(game),
         }),
         // TODO: Do this in some better fashion...
         getWorld(state) {
             return [
+                state.background,
                 state.player,
                 ...state.dots,
-                ...state.worldBounds,
+                // ...state.worldBounds,
             ];
         },
     });
@@ -69,4 +81,5 @@ interface GameState {
     player?: GameObject;
     dots?: GameObject[];
     worldBounds?: GameObject[]; // TODO: Should we do this by default?
+    background?: GameObject;
 }

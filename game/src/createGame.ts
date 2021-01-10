@@ -165,7 +165,7 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
         
 
         const world = getWorld(game.state);
-        Physics.nextTick(game, world);
+        Physics.nextTick(game, world.filter(o => o.body));
 
         // Update - Trigger handlers
         for (const gameObject of world) {

@@ -100,12 +100,18 @@ function createAssetLoader(): AssetLoader {
 
     async function load(url) {
         if (!urlToWhenImg[url]) {
-            urlToWhenImg[url] = new Promise(resolve => {
+            urlToWhenImg[url] = new Promise((resolve, reject) => {
                 const img = new Image();
+                
                 img.onload = () => {
                     urlToImg[url] = img;
                     resolve(img);
                 };
+
+                img.onerror = () => {
+                    reject(`Image '${url}' failed to load!`);
+                };
+
                 img.src = url;
             });
         }
@@ -151,11 +157,32 @@ function createRenderer(config: RenderConfig): Renderer {
                 throw Error('Renderer - Invalid object in world!');
             }
 
+            // TODO: Temp for testing
+            // @ts-ignore
+            if (object.type === 'background') {
+                context.save();
+                // How should camera play in? 
+                performCameraTransform(config, context);
+                const backgroundPattern = context.createPattern(object.renderBody.image, 'repeat');
+                context.fillStyle = backgroundPattern;
+                // TODO: Only fill visible rect
+                // TODO: Draw with game coordinates
+
+                // Transform should be applied inversely to camera, otherwise grid static
+                context.fillRect(0, 0, config.width * 2, config.height * 2);
+                context.restore();
+                continue;
+            }
+
             // TODO: Don't save/restore, instead use setTransform and invert; for performance reasons
             // https://stackoverflow.com/questions/38069462/html5-canvas-save-and-restore-performance
             context.save();
 
-            performObjectTransforms(object, context);
+
+            // TODO: fix body/render body situation
+            if (object.body) {
+                performObjectTransforms(object, context);
+            }
 
             // TODO: Don't do this for individual objects
             // Camera transform
