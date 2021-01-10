@@ -1,10 +1,11 @@
 import Renderer from '../../render';
-import Physics from '../../physics';
+import Physics from '../../physics/src';
 import GameObject from './GameObject';
-import { createStore } from '../../stateManager/stateManager';
 import GameObjectConfig from './GameObjectConfig';
 import Game from './Game';
 import getInputManager from './input/createInputManager';
+import GameConfig from './GameConfig';
+import createTimerManager from './timer/createTimerManager';
 
 export default createGame;
 
@@ -14,52 +15,17 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
     const {
         targetGameLogicFrameRate = 60,
         update,
-        render,
-        state,
+        getInitialState,
+        getWorld,
         initialize,
         container,
+        camera = { 
+            center: { x: config.width/2, y: config.height/2 } 
+        },
     } = config;
 
 
-    const store = createStore<GameState>({
-        // state: {},
-        mutations: {
-            gameInitialized(state, game: Game<GameState>) {
-                Object.assign(state, {
-                    game,
-                });
-
-                if (config.state.events.gameInitialized) {
-                    config.state.events.gameInitialized(state, game);
-                }
-            },
-            update(state) {
-                const { game } = state;
-                const world = config.state.getWorld(state);
-                if (update) {
-                    update();
-                }
-
-
-                Physics.nextTick(game, world);
-
-                // Update - Trigger handlers
-                for (const gameObject of world) {
-                    if (gameObject.update) {
-                        gameObject.update();
-                    }
-                }
-
-                // TODO: Is this right place for remove? Can we avoid mutability
-                // by doing removal externally? A lot of work for the game creator though
-                // game.world = game.world.filter(object => !object.isDestroyed);
-            }
-        },
-    });
-
-
     const MS_PER_UPDATE = 1000 / targetGameLogicFrameRate;
-
 
 
     // TODO: Should we create these with noop mocks instead of null?
@@ -68,8 +34,11 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
     let inputManager = null;
     let assetLoader = null;
     if (!IS_HEADLESS_MODE) {
-        renderer = Renderer.createRenderer(config);
-        inputManager = getInputManager(renderer.view);
+        renderer = Renderer.createRenderer({ ...config, camera });
+        inputManager = getInputManager({
+            canvasElement: renderer.view,
+            camera,
+        });
         assetLoader = Renderer.createAssetLoader();
         container.appendChild(renderer.view);
     }
@@ -78,20 +47,25 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
     const game: Game<GameState> = {
         width: config.width,
         height: config.height,
+        
         start,
+        createGameObject,
+
+        camera,
         renderer,
         physics: Physics,
         inputManager,
-        createGameObject,
+        timerManager: createTimerManager({
+            targetGameLogicFrameRate,
+        }),
         assetLoader,
-        store,
     };
 
     if (initialize) {
         await initialize(game);
     }
-    store.commit('gameInitialized', game);
 
+    game.state = getInitialState(game);
 
     return game;
 
@@ -130,46 +104,79 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
 
 
     function start() {
-        if (config.onStart) {
-            config.onStart();
-        }
-
         let previousTime = Date.now();
         let timeBehindRealWorld = 0;
+        
+        const shouldReportFPS = false;
+        let previousReportedFpsTimestamp = Date.now();
+        const FPS_REPORT_INTERVAL = 1000;
+        
+        // TODO: model events better on game objects
+        for (const gameObject of getWorld(game.state)) {
+            if (gameObject.start) {
+                gameObject.start();
+            }
+        }
 
         nextTick();
 
         function nextTick() {
-            const currentTime = Date.now();
+            const now = Date.now();
+            const currentTime = now;
+
+            // Log FPS if enabled
+            if (shouldReportFPS && previousReportedFpsTimestamp < (now - FPS_REPORT_INTERVAL)) {
+                const fps = 1000 / (currentTime - previousTime);
+                console.log(fps);
+                previousReportedFpsTimestamp = now;
+            }
+            
+            // TODO: How to handle pausing?
             const elapsedTime = currentTime - previousTime;
             timeBehindRealWorld += elapsedTime;
 
-            // processInput();
 
             // Fixed Game Logic timestep - TODO: bail after num iterations
             while (timeBehindRealWorld >= MS_PER_UPDATE) {
-                // Update
-                (() => {
-                    store.commit('update')
-                })()
-
+                nextLogicTick()
                 timeBehindRealWorld -= MS_PER_UPDATE;
             }
 
-            const distanceBetweenGameLogicFrames = timeBehindRealWorld / MS_PER_UPDATE;
-
             // Render - Variable timestep
-            (() => {
-                const world = config.state.getWorld(store.state);
-                game.renderer.nextTick(world);
-                if (render) {
-                    render(distanceBetweenGameLogicFrames);
-                }
-            })()
+            if (renderer) {
+                const distanceBetweenGameLogicFrames = timeBehindRealWorld / MS_PER_UPDATE;
+                renderer.nextTick(getWorld(game.state), distanceBetweenGameLogicFrames);
+            }
 
             previousTime = currentTime;
             window.requestAnimationFrame(nextTick);
         }
+    }
+
+    function nextLogicTick() {
+        if (update) {
+            update();
+        }
+
+        game.timerManager.nextTimerTick();
+
+        // TODO: Process inputs here
+        // processInput();
+        
+
+        const world = getWorld(game.state);
+        Physics.nextTick(game, world);
+
+        // Update - Trigger handlers
+        for (const gameObject of world) {
+            if (gameObject.update) {
+                gameObject.update();
+            }
+        }
+
+        // TODO: Is this right place for remove? Can we avoid mutability
+        // by doing removal externally? A lot of work for the game creator though
+        // game.world = game.world.filter(object => !object.isDestroyed);
     }
 
 }
@@ -179,17 +186,3 @@ interface BaseGameState<GameState> {
     game?: Game<GameState>;
 }
 
-interface GameConfig<GameState> {
-    width: number;
-    height: number;
-    container: HTMLElement,
-    targetGameLogicFrameRate?: number;
-    initialize?: (game: Game<GameState>) => (void | Promise<void>);
-    state: {
-        getWorld: (state: GameState) => GameObject[];
-        events: Record<string, (state: GameState, data) => void>;
-    };
-    onStart?: () => void;
-    update?: () => void;
-    render?: (distanceBetweenGameLogicFrames: number) => void;
-}

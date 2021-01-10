@@ -9,6 +9,9 @@ export default {
     direction,
     normalize,
     lookTowards,
+    random,
+    clamp,
+    inverse,
 };
 
 function multiply(vector: Vector, value: number): Vector {
@@ -61,6 +64,13 @@ function clone(vector: Vector): Vector {
     };
 }
 
+function inverse(vector: Vector): Vector {
+    return {
+        x: -vector.x,
+        y: -vector.y,
+    };
+}
+
 function direction(radians: number): Vector {
     return {
         x: Math.sin(radians),
@@ -78,4 +88,24 @@ function lookTowards(pointToRotate: Vector, pointShouldBeFacing: Vector): number
         angle +
         Math.PI/2 // atan2 assumes 0 is looking right. Our engine assumes its looking up, so adjust for this
     );
+}
+
+
+function random({ min, max }: { min?: Vector, max?: Vector }): Vector {
+    min = min || { x: -Infinity, y: -Infinity };
+    max = max || { x: Infinity, y: Infinity };
+    return {
+        x: Math.random() * (max.x - min.x) + min.x,
+        y: Math.random() * (max.y - min.y) + min.y,
+    };
+}
+
+function clamp(vector: Vector, { min, max }: { min?: Vector, max?: Vector }): Vector {
+    min = min || { x: -Infinity, y: -Infinity };
+    max = max || { x: Infinity, y: Infinity };
+
+    return {
+        x: Math.min(Math.max(min.x, vector.x), max.x),
+        y: Math.min(Math.max(min.y, vector.y), max.y),
+    }
 }

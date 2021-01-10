@@ -1,4 +1,4 @@
-import Body from '../physics/body/Body';
+import Body from '../physics/src/body/Body';
 import RenderBody from './RenderBody';
 
 export default interface RenderObject {

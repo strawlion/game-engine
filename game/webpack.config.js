@@ -6,9 +6,9 @@ module.exports = {
     devtool: 'inline-source-map',
     entry: {
         gameEngine: './src/index.ts',
+        blobGame: './examples/blob-game/blobGame.ts',
         spaceInvaders: './examples/space-invaders/spaceInvaders.ts',
         spaceMiner: './examples/space-miner/spaceMiner.ts',
-        terrainGenerator: './examples/terrain-generator/terrainGenerator.ts'
     },
     module: {
         rules: [
@@ -17,13 +17,28 @@ module.exports = {
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
+            {
+                test: /\.(png|jpg|gif)$/i,
+                use: [
+                    {
+                        loader: 'url-loader',
+                        options: {
+                            limit: Infinity,
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.ase$/i,
+                use: ['aseprite-loader'],
+            },
         ],
     },
     plugins: [
         new CopyPlugin([
+            { from: './examples/blob-game', to: '.' },
             { from: './examples/space-invaders', to: '.' },
             { from: './examples/space-miner', to: '.' },
-            { from: './examples/terrain-generator', to: '.' },
         ]),
     ],
     resolve: {

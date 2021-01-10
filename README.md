@@ -15,6 +15,10 @@ graph TD
   C[Collision]
 ```
 
+# To Test
+- `cd game`
+- `yarn run.examples`
+
 # Design
 Dedicated state manager?
 

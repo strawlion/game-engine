@@ -1,6 +1,7 @@
-import Vector from '../physics/Vector';
-import Circle from '../physics/body/Circle';
-import Rectangle from '../physics/body/Rectangle';
+import Vector from '../physics/src/Vector';
+import Circle from '../physics/src/body/Circle';
+import Rectangle from '../physics/src/body/Rectangle';
+import Polygon from '../physics/src/body/Polygon';
 
 // type RenderBody = ImageRenderBody;// | ShapeRenderBody;
 
@@ -14,15 +15,9 @@ export default interface ImageRenderBody {
     frames?: Record<string, any>;
     scale?: Vector;
 
-    shape?: Circle | Rectangle; // TODO: Create separate declaration for shape/rect here
+    shape?: Circle | Rectangle | Polygon; // TODO: Create separate declaration for shape/rect here
     color?: {
         fill?: string;
         stroke?: string;
     }
 }
-
-// interface ShapeRenderBody {
-//     // type: 'shape';
-
-//     scale?: Vector;
-// }

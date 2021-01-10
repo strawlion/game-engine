@@ -4,6 +4,7 @@ import Vector from './Vector';
 import SpatialHashmap from './collision/SpatialHashmap';
 import Rectangle from './body/Rectangle';
 import Circle from './body/Circle';
+import Polygon from './body/Polygon';
 
 interface PhysicsObject {
     body: Body;
@@ -48,6 +49,16 @@ function nextTick(world: PhysicsWorld, objects: PhysicsObject[], config: Physics
         // Update position
         object.body.x += object.body.velocity.x - (config.gravity.x * object.body.mass);
         object.body.y += object.body.velocity.y + (config.gravity.y * object.body.mass);
+
+        // TODOHIGH: Shouldnt interact with renderbody, right?
+        // @ts-ignore
+        if (object.renderBody && object.renderBody.shape) {
+            // @ts-ignore
+            object.renderBody.shape.x = object.body.x;
+            // @ts-ignore
+            object.renderBody.shape.y = object.body.y;
+        }
+        
     }
 
     checkForCollisions(world, objects);

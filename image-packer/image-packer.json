@@ -1,0 +1,25 @@
+{
+    "name": "image-packer",
+    "animations": [
+        {
+            "name": "Sprite",
+            "frames": [
+                {
+                    "frameId": "/Sprite-0001.png",
+                    "width": 12,
+                    "height": 12,
+                    "x": 0,
+                    "y": 0
+                },
+                {
+                    "frameId": "/Sprite-0006.png",
+                    "width": 12,
+                    "height": 12,
+                    "x": 12,
+                    "y": 0
+                }
+            ]
+        }
+    ],
+    "sheet": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAMCAYAAAB4MH11AAAABmJLR0QA/wD/AP+gvaeTAAAAZUlEQVQ4jWNgGAW0Bha5DP89Vwn8L/zs+B+bPBOpGkgFGBaQC25sP0+aBbg0kAqo4oP3hz8wRIbuJt4CfBpwgWl5psRbgE8DOvjxxZHB8QqEJsoCQhqwgfb9DIy45LD6AJ8GUgEAdgkpVfKAgYQAAAAASUVORK5CYII="
+}

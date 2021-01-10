@@ -3,18 +3,27 @@ import KeyEventHandlers from './KeyEventHandler';
 import MouseInfo from './MouseInfo';
 import MouseEventHandler from './MouseEventHandler';
 import MouseEventHandlers from './MouseEventHandlers';
+import Camera from '../../../render/Camera';
 
 export default getInputManager;
+
+interface InputManagerConfig {
+    canvasElement: HTMLCanvasElement;
+    camera: Camera;
+}
 
 // TODO: Process events off update loop, use velocity instead of modifying x/y
 // TODO: Abstract out
 // TODO: Foreign key layouts?
 // NOTE: Case sensitive at the moment
-function getInputManager(element) {
+function getInputManager({
+    canvasElement,
+    camera,
+}: InputManagerConfig) {
+
     const keyToIsDown = {};
     const keyToKeyDownHandlers = {};
     const keyToKeyUpHandlers = {};
-
 
     const mouseInfo: MouseInfo = {
         isMouseDown: false,
@@ -26,27 +35,27 @@ function getInputManager(element) {
     const mouseupHandlers: MouseEventHandler[] = [];
 
 
-    // TODO: Should we set this on the input element instead?
-    element.ownerDocument.addEventListener('keydown', event => {
+    // TODO: Should we set this on the input canvasElement instead?
+    canvasElement.ownerDocument.addEventListener('keydown', event => {
         keyToIsDown[event.key.toLowerCase()] = true;
         callHandlers(event.key.toLowerCase(), keyToKeyDownHandlers);
     }, true);
-    element.ownerDocument.addEventListener('keyup', event => {
+    canvasElement.ownerDocument.addEventListener('keyup', event => {
         keyToIsDown[event.key.toLowerCase()] = false;
         callHandlers(event.key.toLowerCase(), keyToKeyUpHandlers);
     }, true);
 
-    element.ownerDocument.addEventListener('mousedown', (event: MouseEvent) => {
+    canvasElement.ownerDocument.addEventListener('mousedown', (event: MouseEvent) => {
         mouseInfo.isMouseDown = true;
         onMouseEvent(event, mousedownHandlers);
     }, true);
 
-    element.ownerDocument.addEventListener('mousemove', (event: MouseEvent) => {
+    canvasElement.ownerDocument.addEventListener('mousemove', (event: MouseEvent) => {
         mouseInfo.isMouseDown = true;
         onMouseEvent(event, mousemoveHandlers);
     }, true);
 
-    element.ownerDocument.addEventListener('mouseup', event => {
+    canvasElement.ownerDocument.addEventListener('mouseup', event => {
         mouseInfo.isMouseDown = false;
         onMouseEvent(event, mouseupHandlers);
     }, true);
@@ -58,6 +67,7 @@ function getInputManager(element) {
         onKeyUp,
         registerKeyEvents,
         registerMouseEvents,
+        mouseInfo,
     };
     return inputManager;
 
@@ -115,8 +125,9 @@ function getInputManager(element) {
     }
 
     function onMouseEvent(event, handlers) {
-        mouseInfo.x = event.offsetX;
+        mouseInfo.x = event.offsetX; // TODO: Relative to canvas position
         mouseInfo.y = event.offsetY;
+
         handlers.forEach(handler => handler(mouseInfo));
     }
 

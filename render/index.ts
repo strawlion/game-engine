@@ -1,7 +1,9 @@
 import Renderer from './Renderer';
 import RenderObject from './RenderObject';
-import Circle from '../physics/body/Circle';
-import Rectangle from '../physics/body/Rectangle';
+import Circle from '../physics/src/body/Circle';
+import Rectangle from '../physics/src/body/Rectangle';
+import Polygon from '../physics/src/body/Polygon';
+import Camera from './Camera';
 
 const Shape = {
     circle: {
@@ -44,7 +46,37 @@ const Shape = {
                 context.fill();
             }
         }
-    }
+    },
+    polygon: {
+        render(context: CanvasRenderingContext2D, polygon: Polygon, color: any = {}) {
+            const { stroke, fill } = color;
+            
+            context.beginPath();
+            
+            for (const point of polygon.points) {
+                const isFirstPoint = point === polygon.points[0]
+                if (isFirstPoint) {
+                    context.moveTo(polygon.x + point.x, polygon.y + point.y);
+                }
+                else {
+                    context.lineTo(polygon.x + point.x, polygon.y + point.y);
+                }
+            }
+
+            if (stroke) {
+                context.lineWidth = 1;
+                context.strokeStyle = stroke;
+                context.stroke();
+            }
+
+            if (fill) {
+                context.fillStyle = fill;
+                context.fill();
+            }
+            
+            context.closePath();
+        }
+    },
 }
 
 export default {
@@ -90,22 +122,26 @@ function createAssetLoader(): AssetLoader {
 }
 
 
+interface RenderConfig {
+    width: number;
+    height: number;
+    camera: Camera;
+}
 
-
-function createRenderer(config: { width: number, height: number}): Renderer {
+function createRenderer(config: RenderConfig): Renderer {
     const canvas = Object.assign(
         document.createElement('canvas'),
         config
     );
     const context = canvas.getContext('2d');
-
+    
     return {
         view: canvas,
         nextTick,
-    }
+    };
 
     // TODO: Don't apply drawing transforms to physics body
-    function nextTick(objects: RenderObject[]) {
+    function nextTick(objects: RenderObject[], distanceBetweenFrames: number) {
         context.fillStyle = '#fff';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -115,32 +151,20 @@ function createRenderer(config: { width: number, height: number}): Renderer {
                 throw Error('Renderer - Invalid object in world!');
             }
 
+            // TODO: Don't save/restore, instead use setTransform and invert; for performance reasons
+            // https://stackoverflow.com/questions/38069462/html5-canvas-save-and-restore-performance
             context.save();
 
+            performObjectTransforms(object, context);
 
-            // TODO: Separate rotation for render Object
-            context.translate(
-                // TODO: Why is this math necessary?
-                object.body.x,
-                object.body.y,
-            );
-            context.rotate(object.body.rotation);
-
-            if (object.renderBody && object.renderBody.scale) {
-                context.scale(
-                    object.renderBody.scale.x,
-                    object.renderBody.scale.y,
-                )
+            // TODO: Don't do this for individual objects
+            // Camera transform
+            if (config.camera) {
+                performCameraTransform(config, context);    
             }
-            context.translate(
-                // TODO: Why is this math necessary?
-                -1 * object.body.x,
-                -1 * object.body.y,
-            );
 
 
             if (object.renderBody) {
-
                 if (object.renderBody.image) {
                     // TODO: This should be general case
                     if (object.renderBody.activeFrame) {
@@ -204,4 +228,33 @@ function createRenderer(config: { width: number, height: number}): Renderer {
 
     }
 
+}
+
+
+// Handles rotation, scaling etc
+// TODO: Should user render body rather than physics body
+function performObjectTransforms(object: RenderObject, context: CanvasRenderingContext2D) {         
+    // Consider rotation/scaling from center of object
+    context.translate(object.body.x, object.body.y);
+    context.rotate(object.body.rotation); // TODO: Separate rotation for render Object
+
+    if (object.renderBody && object.renderBody.scale) {
+        context.scale(
+            object.renderBody.scale.x,
+            object.renderBody.scale.y,
+        )
+    }
+
+    // Reset origin
+    context.translate(-object.body.x, -object.body.y);
+}
+
+
+function performCameraTransform(config: RenderConfig, context: CanvasRenderingContext2D) {
+    context.translate(
+        -(config.camera.center.x - config.width / 2), 
+        -(config.camera.center.y - config.height / 2),
+        // -config.camera.center.x, 
+        // -config.camera.center.y,
+    );
 }

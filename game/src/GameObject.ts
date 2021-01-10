@@ -1,4 +1,4 @@
-import Body from '../../physics/body/Body';
+import Body from '../../physics/src/body/Body';
 import RenderBody from '../../render/RenderBody';
 
 export default interface GameObject {
@@ -7,6 +7,17 @@ export default interface GameObject {
     body: Body;
     renderBody?: RenderBody;
 
+    start?: () => any;
     update?: () => any;
     onCollision?: (otherObject: GameObject) => any;
+}
+
+
+
+function GameObject(value: string) {
+    // this is the decorator factory
+    return function(target) {
+      // this is the decorator
+      // do something with 'target' and 'value'...
+    };
 }

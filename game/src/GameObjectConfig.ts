@@ -1,5 +1,5 @@
 import GameObject from './GameObject';
-import Body from '../../physics/body/Body';
+import Body from '../../physics/src/body/Body';
 import KeyEventHandlers from './input/KeyEventHandler';
 import KeyEventId from './input/KeyEventId';
 import MouseEventHandlers from './input/MouseEventHandlers';
