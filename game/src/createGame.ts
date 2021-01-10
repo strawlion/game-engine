@@ -20,7 +20,7 @@ async function createGame<GameState extends BaseGameState<GameState>>(config: Ga
         initialize,
         container,
         camera = { 
-            center: { x: config.width/2, y: config.height/2 } 
+            origin: { x: 0, y: 0 } 
         },
     } = config;
 

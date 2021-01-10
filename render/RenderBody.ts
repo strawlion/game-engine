@@ -16,8 +16,10 @@ export default interface ImageRenderBody {
     scale?: Vector;
 
     shape?: Circle | Rectangle | Polygon; // TODO: Create separate declaration for shape/rect here
-    color?: {
+    // TODO: merge color and style
+    style?: {
         fill?: string;
         stroke?: string;
-    }
+        lineWidth?: number;
+    };
 }

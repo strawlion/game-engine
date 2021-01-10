@@ -64,7 +64,11 @@ export default function createPlayer(game: Game<any>, { x, y }) {
         // },
         body: circleBody,
         renderBody: {
-            color: { fill: 'red', stroke: 'red' },
+            style: { 
+                fill: 'red', 
+                stroke: 'darkred',
+                lineWidth: 10,
+            },
             shape: circleBody, // TODO: Polygon body
         },
         start() {
@@ -88,18 +92,22 @@ export default function createPlayer(game: Game<any>, { x, y }) {
             // }
             // this.counter += 1;
             
-            
-            const movement = v.clamp(
-                v.divide(v.subtract(game.inputManager.mouseInfo, player.body), 20),
-                {
-                    max: { x: 4, y: 4 }
-                }
-            );
+            if (game.inputManager.mouseInfo.gamePosition) {
+                const movement = v.clamp(
+                    v.divide(v.subtract(game.inputManager.mouseInfo.gamePosition, player.body), 20),
+                    {
+                        max: { x: 4, y: 4 }
+                    }
+                );
+    
+                player.body.x += movement.x;
+                player.body.y += movement.y;
+            }
 
-            player.body.x += movement.x;
-            player.body.y += movement.y;
-
-            game.camera.center = player.body;
+            game.camera.origin = {
+                x: player.body.x - game.width / 2,
+                y: player.body.y - game.height / 2,
+            };
         },
         onCollision(otherObj) {
             if (otherObj.type === 'Dot') {

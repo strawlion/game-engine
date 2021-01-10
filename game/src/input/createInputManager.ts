@@ -27,8 +27,10 @@ function getInputManager({
 
     const mouseInfo: MouseInfo = {
         isMouseDown: false,
-        x: null,
-        y: null,
+
+        // Should we allow null?
+        canvasPosition: null, 
+        gamePosition: null,
     };
     const mousemoveHandlers: MouseEventHandler[] = [];
     const mousedownHandlers: MouseEventHandler[] = [];
@@ -125,8 +127,18 @@ function getInputManager({
     }
 
     function onMouseEvent(event, handlers) {
-        mouseInfo.x = event.offsetX; // TODO: Relative to canvas position
-        mouseInfo.y = event.offsetY;
+        
+        const canvasPosition = { 
+            x: event.offsetX, y: event.offsetY 
+        };
+
+        Object.assign(mouseInfo, {
+            canvasPosition,
+            gamePosition: { 
+                x: canvasPosition.x + camera.origin.x,   
+                y: canvasPosition.y + camera.origin.y,
+            } // TODO: May want to clamp to edges of canvas    
+        });
 
         handlers.forEach(handler => handler(mouseInfo));
     }

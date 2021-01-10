@@ -18,7 +18,7 @@ async function setupGame() {
         container: document.body,
         targetGameLogicFrameRate: 30,
         // camera: {
-        //     center: { x: 0, y: 0 }
+        //     origin: { x: 0, y: 0 }
         // },
         update,
         // TODO: Do we need to use game object to instantiate players?

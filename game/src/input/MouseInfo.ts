@@ -1,5 +1,7 @@
+import Vector from '../../../physics/src/Vector';
+
 export default interface MouseInfo {
     isMouseDown: boolean;
-    x: number;
-    y: number;
+    canvasPosition?: Vector;
+    gamePosition?: Vector;
 }

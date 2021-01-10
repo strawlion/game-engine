@@ -7,13 +7,13 @@ import Camera from './Camera';
 
 const Shape = {
     circle: {
-        render(context: CanvasRenderingContext2D, circle: Circle, color: any = {}) {
-            const { stroke, fill } = color;
+        render(context: CanvasRenderingContext2D, circle: Circle, style: any = {}) {
+            const { stroke, fill, lineWidth } = style;
             context.beginPath();
             context.arc(circle.x, circle.y, circle.radius, 0, 2 * Math.PI);
 
             if (stroke) {
-                context.lineWidth = 1;
+                context.lineWidth = lineWidth || 1;
                 context.strokeStyle = stroke;
                 context.stroke();
             }
@@ -25,8 +25,8 @@ const Shape = {
         }
     },
     rectangle: {
-        render(context: CanvasRenderingContext2D, rectangle: Rectangle, color: any = {}) {
-            const { stroke, fill } = color;
+        render(context: CanvasRenderingContext2D, rectangle: Rectangle, style: any = {}) {
+            const { stroke, fill, lineWidth } = style;
             context.beginPath();
             context.rect(
                 rectangle.x,
@@ -36,7 +36,7 @@ const Shape = {
             );
 
             if (stroke) {
-                context.lineWidth = 1;
+                context.lineWidth = lineWidth || 1;
                 context.strokeStyle = stroke;
                 context.stroke();
             }
@@ -48,9 +48,9 @@ const Shape = {
         }
     },
     polygon: {
-        render(context: CanvasRenderingContext2D, polygon: Polygon, color: any = {}) {
-            const { stroke, fill } = color;
-            
+        render(context: CanvasRenderingContext2D, polygon: Polygon, style: any = {}) {
+            const { stroke, fill, lineWidth } = style;
+
             context.beginPath();
             
             for (const point of polygon.points) {
@@ -64,7 +64,7 @@ const Shape = {
             }
 
             if (stroke) {
-                context.lineWidth = 1;
+                context.lineWidth = lineWidth || 1;
                 context.strokeStyle = stroke;
                 context.stroke();
             }
@@ -208,7 +208,7 @@ function createRenderer(config: RenderConfig): Renderer {
                 if (object.renderBody.shape) {
                     // TODO: render body should be relative to physics body origin, not separate coords
                     // @ts-ignore
-                    Shape[object.renderBody.shape.type].render(context, object.renderBody.shape, object.renderBody.color);
+                    Shape[object.renderBody.shape.type].render(context, object.renderBody.shape, object.renderBody.style);
                 }
 
 
@@ -252,9 +252,7 @@ function performObjectTransforms(object: RenderObject, context: CanvasRenderingC
 
 function performCameraTransform(config: RenderConfig, context: CanvasRenderingContext2D) {
     context.translate(
-        -(config.camera.center.x - config.width / 2), 
-        -(config.camera.center.y - config.height / 2),
-        // -config.camera.center.x, 
-        // -config.camera.center.y,
+        -config.camera.origin.x, 
+        -config.camera.origin.y,
     );
 }

@@ -14,7 +14,7 @@ export default function createDot(game: Game<any>, { x, y }) {
         type: 'Dot',
         body: circleBody,
         renderBody: {
-            color: { 
+            style: { 
                 fill: color, 
                 stroke: color 
             },

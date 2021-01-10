@@ -4,5 +4,5 @@ interface Vector {
     y: number;
 }
 export default interface Camera {
-    center: Vector;
+    origin: Vector;
 }
